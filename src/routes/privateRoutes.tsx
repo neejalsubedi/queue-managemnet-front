@@ -7,10 +7,13 @@ import { DynamicRedirect } from "./dynamicRedirect";
 
 
 
+
 const PrivateLayout = lazy(() => import("../components/layout/MainLayout"));
 const Dashboard = lazy(() => import("../core/private/Dashboard/Dashboard"));
 const Reports = lazy(() => import("../core/private/Reports/Reports"));
 const UserTable = lazy(() => import("../core/private/UserManagement/StaffManagement/UserTable"));
+const RoleManagement = lazy(() => import("../core/private/UserManagement/RoleManagement/RoleManagement"));
+const ClinicManagement = lazy(() => import("../core/private/UserManagement/ClinicMnagement/ClinicTable.tsx"));
 // const Configurations = lazy(
 //   () => import("../core/private/Configurations/Confgurations")
 // );
@@ -48,7 +51,19 @@ export const privateRoutes: RouteObject[] = [
       {
         path: "/staff-management",
         element: <UserTable />,
+
+
+
       },
+        {
+            path:"role-management",
+            element:< RoleManagement/>
+        },
+        {
+            path:"clinic-management",
+            element:<ClinicManagement />
+        },
+
 
       // {
       //   path: "configuarations",

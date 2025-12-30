@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
       branchId: number | null
     ) => `api/report/generate-pdf/${timeframe}/${branchId}`,
   },
+ 
   BRANCH: {
     ADD_BRANCH: "api/branch/save",
     GET_ALL_BRANCH: "api/branch/get-all",
@@ -50,5 +51,17 @@ export const API_ENDPOINTS = {
     GET_STAFF_BY_TYPE:"/api/users/staffByType",
     ADD_STAFF:"/api/users/addUsers",
     UPDATE_STAFF:(id:string|number|undefined)=>`/api/users/${id}`
-  }
+  },
+    ROLE:{
+        GET_Role:"/api/role/",
+        // ADD_STAFF:"/api/users/addUsers",
+        // UPDATE_STAFF:(id:string|number|undefined)=>`/api/users/${id}`
+    },
+    CLINIC :{
+      GET_CLINIC:"api/clinics/",
+        ADD_CLINIC:"api/clinics/",
+        DELETE_CLINIC:(id:string|number|undefined)=>`api/clinics/delete${id}`,
+        GET_CLINIC_BY_ID:(id:string|number|undefined)=>`api/clinics/${id}`,
+        UPDATE_CLINIC:  (id:string|number|undefined)=>`api/clinics/${id}`,
+    }
 };

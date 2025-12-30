@@ -3,11 +3,13 @@ import { API_ENDPOINTS } from "../constants/ApiEndpoints/apiEndpoints";
 import { UserData } from "../ContextApi/AuthContext";
 import { useApiGet } from "./ApiGet";
 import { useApiMutation } from "./ApiMutation";
+import {RoleResponse} from "@/core/private/UserManagement/RoleManagement/roleTypes.ts";
+import {GetClinicResponse} from "@/core/private/UserManagement/ClinicMnagement/clinicType.ts";
 
 export type ApiListResponse<T> = {
   statusCode: number;
   message: string;
-  data: T | T[];
+  data: T[];
 };
 
 export const useGetInit = () => {
@@ -27,3 +29,13 @@ export const useCreateUser = () =>
   useApiMutation("post", API_ENDPOINTS.STAFF.ADD_STAFF);
 export const useUpdateUser = (id:string|number|undefined) =>
   useApiMutation("put", API_ENDPOINTS.STAFF.UPDATE_STAFF(id));
+export const useGetRole=()=>
+    useApiGet<ApiListResponse<RoleResponse>>(API_ENDPOINTS.ROLE.GET_Role)
+export const useGetClinic= ()=>
+    useApiGet<ApiListResponse<GetClinicResponse>>(API_ENDPOINTS.CLINIC.GET_CLINIC);
+export const useUpdateClinic= (id:string|number|undefined)=>
+    useApiMutation("put",API_ENDPOINTS.CLINIC.UPDATE_CLINIC(id))
+export const useDeleteClinic = (id:string|number|undefined)=>
+    useApiMutation("delete",API_ENDPOINTS.CLINIC.DELETE_CLINIC(id))
+export const useAddClinic=()=>
+    useApiMutation("post",API_ENDPOINTS.CLINIC.ADD_CLINIC)

@@ -2,7 +2,7 @@ import { apiService } from "@/api";
 import { useApiMutation } from "@/components/ApiCall/ApiMutation";
 import { Button } from "@/components/ui/button";
 
-import { decryptId } from "@/utility/cryptoUtil";
+// import { decryptId } from "@/utility/cryptoUtil";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -21,7 +21,7 @@ const PermissionTable = () => {
   const { id } = useParams<{ id: string }>();
 
   const navigate = useNavigate();
-  const decryptedId = id ? decryptId(decodeURIComponent(id)) : null;
+  const decryptedId = id ?? null;
 
   useEffect(() => {
     if (id) {

@@ -1,211 +1,209 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Row } from "@tanstack/react-table";
-import { Pencil } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 
-import Table from "@/components/Table/Table";
+
 import {
-  useAddRole,
-  useGetAllRole,
-  useUpdateRole,
+    // useAddRole,
+    useGetRole,
+    // useUpdateRole,
 } from "@/components/ApiCall/Api";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { GenericFormRenderer } from "@/components/form/GenericFormRenderer";
 
-import { QUERY_KEYS } from "@/components/constants/QueryKeys/queryKeys";
-import { RoleFormFields } from "./fields";
+import Table, { Column } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+
+import { Input } from "@/components/ui/input";
 import { RoleRequest, RoleResponse } from "./roleTypes";
-import TableCellFormatter from "@/helper/TableCellFormatter";
-import { encryptId } from "@/utility/cryptoUtil";
-import { useNavigate } from "react-router-dom";
 
 const RoleManagement = () => {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const [mode, setMode] = useState<"add" | "edit">("add");
+    const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
 
-  const isEditMode = !!selectedRole;
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
+    const { data, refetch } = useGetRole();
+    // const addRole = useAddRole();
+    // const updateRole = useUpdateRole(selectedRole?.id);
 
-  const { data: fetchedRole } = useGetAllRole();
-  const { mutate: addRole, isPending: pendingAdd } = useAddRole();
-  const { mutate: updateRole, isPending: pendingUpdate } = useUpdateRole(
-    selectedRole?.id
-  );
-
-  const form = useForm<RoleRequest>({
-    defaultValues: {
-      name: "",
-      code: "",
-      description: "",
-    },
-  });
-
-  useEffect(() => {
-    if (!isFormOpen) return;
-
-    if (selectedRole) {
-      form.reset({
-        name: selectedRole.name,
-        code: selectedRole.code,
-        description: selectedRole.description,
-      });
-    } else {
-      form.reset();
-    }
-  }, [isFormOpen, selectedRole, form]);
-
-  const onSubmit = (data: RoleRequest) => {
-    const action = isEditMode ? updateRole : addRole;
-
-    action(data, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.GET_ROLES });
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ACTIVE_ROLES });
-        closeForm();
-      },
+    const form = useForm<RoleRequest>({
+        defaultValues: {
+            name: "",
+            code: "",
+            description: "",
+        },
     });
-  };
 
-  const closeForm = () => {
-    setIsFormOpen(false);
-    setSelectedRole(null);
-    form.reset();
-  };
+    /* Populate form on edit */
+    useEffect(() => {
+        if (mode === "edit" && selectedRole) {
+            form.reset({
+                name: selectedRole.name,
+                code: selectedRole.code,
+                description: selectedRole.description,
+            });
+        }
+    }, [mode, selectedRole, form]);
 
-  const handlePermission = (user: RoleResponse) => {
-    const encryptedId = encodeURIComponent(encryptId(user.id));
-    navigate(`/permission/${encryptedId}`);
-    console.log(user.id);
-  };
+    const handleAdd = () => {
+        setMode("add");
+        setSelectedRole(null);
+        form.reset();
+        setIsOpen(true);
+    };
 
-  const formKey = selectedRole ? `edit-${selectedRole.id}` : "add-role";
+    const handleEdit = (role: RoleResponse) => {
+        setMode("edit");
+        setSelectedRole(role);
+        setIsOpen(true);
+    };
 
-  const columns = [
-    {
-      header: "S.No",
-      cell: ({ row }: { row: Row<RoleResponse> }) => row.index + 1,
-    },
-    {
-      accessorKey: "name",
-      header: "Role Name",
-      cell: ({ row }: { row: Row<RoleResponse> }) => (
-        <TableCellFormatter value={row.original.name} />
-      ),
-    },
-    {
-      accessorKey: "code",
-      header: "Code",
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-    },
-    {
-      header: "Actis",
-      cell: ({ row }: { row: Row<RoleResponse> }) => (
-        <>
-          <div className="flex items-center gap-3">
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedRole(row.original);
-                setIsFormOpen(true);
-              }}
+    const onSubmit = (data: RoleRequest) => {
+        // if (mode === "add") {
+        //     addRole.mutate(data, {
+        //         onSuccess: () => {
+        //             setIsOpen(false);
+        //             form.reset();
+        //             refetch();
+        //         },
+        //     });
+        // }
+        //
+        // if (mode === "edit" && selectedRole?.id) {
+        //     updateRole.mutate(data, {
+        //         onSuccess: () => {
+        //             setIsOpen(false);
+        //             setSelectedRole(null);
+        //             form.reset();
+        //             refetch();
+        //         },
+        //     });
+        // }
+    };
+
+    const columns: Column<RoleResponse>[] = useMemo(
+        () => [
+            { header: "Role Name", accessor: "name" },
+            { header: "Code", accessor: "code" },
+            { header: "Description", accessor: "description" },
+        ],
+        []
+    );
+
+    return (
+        <div className="p-6 space-y-6">
+            <div className="flex justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold">Role Management</h1>
+                    <p className="text-muted-foreground mt-2">
+                        Create and manage user roles
+                    </p>
+                </div>
+                <Button onClick={handleAdd}>Add Role</Button>
+            </div>
+
+            <Table
+                data={data?.data || []}
+                columns={columns}
+                onEdit={(row) => handleEdit(row)}
+            />
+
+            <Dialog
+                open={isOpen}
+                onOpenChange={(open) => {
+                    setIsOpen(open);
+                    if (!open) {
+                        form.reset();
+                        setSelectedRole(null);
+                    }
+                }}
             >
-              <Pencil size={16} />
-            </Button>
-            <Button
-              size={"sm"}
-              variant={"secondary"}
-              onClick={() => handlePermission(row.original)}
-            >
-              Permission
-            </Button>
-          </div>
-        </>
-      ),
-    },
-  ];
+                <DialogContent className="min-w-[50vw]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {mode === "add" ? "Add Role" : "Update Role"}
+                        </DialogTitle>
+                        <DialogClose />
+                    </DialogHeader>
 
-  return (
-    <>
-      <div className="flex justify-between">
-        <header>
-          <h1 className="text-3xl font-bold text-foreground">
-            Role Management
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Create and manage user roles and access levels efficiently.
-          </p>
-        </header>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    rules={{ required: "Role name is required" }}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Role Name</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Admin" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-        <Button
-          onClick={() => {
-            setSelectedRole(null);
-            setIsFormOpen(true);
-          }}
-        >
-          Add Role
-        </Button>
-      </div>
+                                <FormField
+                                    control={form.control}
+                                    name="code"
+                                    rules={{ required: "Code is required" }}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Code</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="ADMIN" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-      <Table
-        columns={columns}
-        getData={async () => fetchedRole?.data ?? []}
-        pageSize={10}
-      />
+                                <FormField
+                                    control={form.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-2">
+                                            <FormLabel>Description</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="System administrator role" {...field} />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
-      <Dialog
-        open={isFormOpen}
-        onOpenChange={(open) => {
-          setIsFormOpen(open);
-
-          if (!open) {
-            setSelectedRole(null);
-            form.reset();
-          }
-        }}
-      >
-        <DialogContent className="min-w-[60vw]">
-          <DialogHeader>
-            <DialogTitle>{isEditMode ? "Update Role" : "Add Role"}</DialogTitle>
-            <DialogClose />
-          </DialogHeader>
-
-          <Form {...form} key={formKey}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-3">
-                <GenericFormRenderer form={form} fields={RoleFormFields} />
-              </div>
-
-              <DialogFooter className="justify-center">
-                <Button type="submit">
-                  {pendingAdd
-                    ? "Saving..."
-                    : pendingUpdate
-                    ? "Updating..."
-                    : isEditMode
-                    ? "Update"
-                    : "Add"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+                            <DialogFooter>
+                                {/*<Button type="submit">*/}
+                                {/*    {mode === "add"*/}
+                                {/*        ? addRole.isPending*/}
+                                {/*            ? "Saving..."*/}
+                                {/*            : "Save"*/}
+                                {/*        : updateRole.isPending*/}
+                                {/*            ? "Updating..."*/}
+                                {/*            : "Update"}*/}
+                                {/*</Button>*/}
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
 };
 
 export default RoleManagement;

@@ -15,9 +15,9 @@ import {
 // // import { GenericFormRenderer } from "@/components/form/GenericFormRenderer";
 // import { StaffFormFields } from "./StaffFormFields";
 import {
-  useCreateUser,
-  useGetStaffByType,
-  useUpdateUser,
+    useCreateUser, useGetRole,
+    useGetStaffByType,
+    useUpdateUser,
 } from "@/components/ApiCall/Api";
 import { Button } from "@/components/ui/button";
 import Table, { Column } from "@/components/ui/table";
@@ -42,31 +42,33 @@ const UserTable = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const { data, refetch } = useGetStaffByType("patient");
+
   // const updateUserData = useUpdateStaff(selectedUser?.id ?? undefined);
 
-  // const { activeRoles } = useActiveRoles();
+  const { data:role } = useGetRole();
   // const { branches } = useBranches();
   const [mode, setMode] = useState<"add" | "edit">("add");
 
   const createUser = useCreateUser();
   const updateUser = useUpdateUser(selectedUser?.id);
 
+
 const form = useForm<User>({
   defaultValues: {
-    fullname: "",
+    fullName: "",
     email: "",
     role_id: 2, // patient
-    isactive: true,
+    isActive: true,
   },
 });
 
   useEffect(() => {
   if (mode === "edit" && selectedUser) {
     form.reset({
-      fullname: selectedUser.fullname,
+      fullName: selectedUser.fullName,
       email: selectedUser.email,
       role_id: selectedUser.role_id,
-      isactive: selectedUser.isactive,
+      isActive: selectedUser.isActive,
     });
   }
 }, [mode, selectedUser, form]);
@@ -143,12 +145,12 @@ const form = useForm<User>({
 
   const columns: Column<User>[] = useMemo(
     () => [
-      { header: "Full Name", accessor: "fullname" },
+      { header: "Full Name", accessor: "fullName" },
       { header: "Email", accessor: "email" },
       { header: "Role", accessor: "role_name" },
       {
         header: "Status",
-        accessor: (row) => (row.isactive ? "Active" : "Inactive"),
+        accessor: (row) => (row.isActive ? "Active" : "Inactive"),
       },
      
     ],
@@ -169,7 +171,7 @@ const form = useForm<User>({
         </div>
         <Button onClick={handleAddUser}>Add Patient</Button>
       </div>
-      <Table data={data?.users || []} columns={columns} 
+      <Table data={data?.data || []} columns={columns}
       onEdit={(row)=>{
         handleEditUser(row)
       }}/>
@@ -197,7 +199,7 @@ const form = useForm<User>({
   {/* Full Name */}
   <FormField
     control={form.control}
-    name="fullname"
+    name="fullName"
     rules={{ required: "Full name is required" }}
     render={({ field }) => (
       <FormItem>
@@ -244,23 +246,38 @@ const form = useForm<User>({
 
 
   {/* Role (hidden or disabled since patient) */}
-  <FormField
-    control={form.control}
-    name="role_id"
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>Role</FormLabel>
-        <FormControl>
-          <Input type="number" disabled {...field} />
-        </FormControl>
-      </FormItem>
-    )}
-  />
+           <FormField
+               control={form.control}
+               name="role_id"
+               render={({ field }) => (
+                   <FormItem>
+                       <FormLabel>Role</FormLabel>
+                       <FormControl>
+                           <select
+                               className="w-full border rounded-md px-3 py-2"
+                               value={field.value}
+                               onChange={(e) => field.onChange(Number(e.target.value))}
+                               disabled={mode === "edit"} // optional: lock role on edit
+                           >
+                               <option value="">Select role</option>
 
-  {/* Active Status */}
+                               {role?.data?.map((r: any) => (
+                                   <option key={r.id} value={r.id}>
+                                       {r.code}
+                                   </option>
+                               ))}
+                           </select>
+                       </FormControl>
+                       <FormMessage />
+                   </FormItem>
+               )}
+           />
+
+
+           {/* Active Status */}
   <FormField
     control={form.control}
-    name="isactive"
+    name="isActive"
     render={({ field }) => (
       <FormItem className="flex flex-col">
         <FormLabel>Status</FormLabel>
