@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
-
 import {
-    // useAddRole,
+    useAddRole,
     useGetRole,
-    // useUpdateRole,
+    useUpdateRole,
 } from "@/components/ApiCall/Api";
 
 import Table, { Column } from "@/components/ui/table";
@@ -30,6 +29,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { RoleRequest, RoleResponse } from "./roleTypes";
+import {useNavigate} from "react-router-dom";
 
 const RoleManagement = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -37,8 +37,8 @@ const RoleManagement = () => {
     const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
 
     const { data, refetch } = useGetRole();
-    // const addRole = useAddRole();
-    // const updateRole = useUpdateRole(selectedRole?.id);
+    const addRole = useAddRole();
+    const updateRole = useUpdateRole(selectedRole?.id);
 
     const form = useForm<RoleRequest>({
         defaultValues: {
@@ -47,12 +47,12 @@ const RoleManagement = () => {
             description: "",
         },
     });
-
+const navigate=useNavigate();
     /* Populate form on edit */
     useEffect(() => {
         if (mode === "edit" && selectedRole) {
             form.reset({
-                name: selectedRole.name,
+                role_name: selectedRole.role_name,
                 code: selectedRole.code,
                 description: selectedRole.description,
             });
@@ -73,31 +73,31 @@ const RoleManagement = () => {
     };
 
     const onSubmit = (data: RoleRequest) => {
-        // if (mode === "add") {
-        //     addRole.mutate(data, {
-        //         onSuccess: () => {
-        //             setIsOpen(false);
-        //             form.reset();
-        //             refetch();
-        //         },
-        //     });
-        // }
-        //
-        // if (mode === "edit" && selectedRole?.id) {
-        //     updateRole.mutate(data, {
-        //         onSuccess: () => {
-        //             setIsOpen(false);
-        //             setSelectedRole(null);
-        //             form.reset();
-        //             refetch();
-        //         },
-        //     });
-        // }
+        if (mode === "add") {
+            addRole.mutate(data, {
+                onSuccess: () => {
+                    setIsOpen(false);
+                    form.reset();
+                    refetch();
+                },
+            });
+        }
+
+        if (mode === "edit" && selectedRole?.id) {
+            updateRole.mutate(data, {
+                onSuccess: () => {
+                    setIsOpen(false);
+                    setSelectedRole(null);
+                    form.reset();
+                    refetch();
+                },
+            });
+        }
     };
 
     const columns: Column<RoleResponse>[] = useMemo(
         () => [
-            { header: "Role Name", accessor: "name" },
+            { header: "Role Name", accessor: "role_name" },
             { header: "Code", accessor: "code" },
             { header: "Description", accessor: "description" },
         ],
@@ -120,6 +120,7 @@ const RoleManagement = () => {
                 data={data?.data || []}
                 columns={columns}
                 onEdit={(row) => handleEdit(row)}
+                onPermission={(row) => navigate(`/role-management/permissions/${row.id}`,{state:{role_name:row.role_name,code:row.code}})}
             />
 
             <Dialog
@@ -141,11 +142,14 @@ const RoleManagement = () => {
                     </DialogHeader>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form
+                            onSubmit={form.handleSubmit(onSubmit)}
+                            className="space-y-4"
+                        >
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="name"
+                                    name="role_name"
                                     rules={{ required: "Role name is required" }}
                                     render={({ field }) => (
                                         <FormItem>
@@ -180,7 +184,10 @@ const RoleManagement = () => {
                                         <FormItem className="col-span-2">
                                             <FormLabel>Description</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="System administrator role" {...field} />
+                                                <Input
+                                                    placeholder="System administrator role"
+                                                    {...field}
+                                                />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -188,15 +195,15 @@ const RoleManagement = () => {
                             </div>
 
                             <DialogFooter>
-                                {/*<Button type="submit">*/}
-                                {/*    {mode === "add"*/}
-                                {/*        ? addRole.isPending*/}
-                                {/*            ? "Saving..."*/}
-                                {/*            : "Save"*/}
-                                {/*        : updateRole.isPending*/}
-                                {/*            ? "Updating..."*/}
-                                {/*            : "Update"}*/}
-                                {/*</Button>*/}
+                                <Button type="submit">
+                                    {mode === "add"
+                                        ? addRole.isPending
+                                            ? "Saving..."
+                                            : "Save"
+                                        : updateRole.isPending
+                                            ? "Updating..."
+                                            : "Update"}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </Form>
