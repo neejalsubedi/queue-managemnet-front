@@ -39,10 +39,30 @@ export interface GetUserResponse {
 
 export interface User {
   id: number;
-  fullName: string;
+  full_name: string;
   email: string;
   role_id: number;
   role_name: string;
     password?: string;
+    phone: string;
+    gender: "M" | "F";
   isActive: boolean;
+  clinic_ids: number[];
 }
+export type Clinic = {
+    id: number;
+    name: string;
+};
+
+export type UserGet = {
+    id: number;
+    fullName: string;
+    username: string;
+    email: string;
+    phone: string;
+    gender: "M" | "F";
+    roleName: string;
+    roleId: number;
+    isActive: boolean;
+    clinics: Clinic[];
+};

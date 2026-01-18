@@ -44,7 +44,7 @@ type Department = {
 };
 
 type DepartmentProps = {
-    clinicId: number;
+    clinicId: number|string;
     onSelectDepartment: (id: number) => void;
 };
 

@@ -1,10 +1,11 @@
-import {User} from "@/core/private/UserManagement/StaffManagement/staffTypes";
+import { UserGet} from "@/core/private/UserManagement/StaffManagement/staffTypes";
 import {API_ENDPOINTS} from "../constants/ApiEndpoints/apiEndpoints";
 import {UserData} from "../ContextApi/AuthContext";
 import {useApiGet} from "./ApiGet";
 import {useApiMutation} from "./ApiMutation";
 import {RoleResponse} from "@/core/private/UserManagement/RoleManagement/roleTypes.ts";
-import {GetClinicResponse} from "@/core/private/UserManagement/ClinicMnagement/clinicType.ts";
+import {Clinic} from "@/core/private/ClinicMnagement/clinicType.ts";
+import {Patient} from "@/core/private/PatientMangement/type.ts";
 
 export type ApiListResponse<T> = {
     statusCode: number;
@@ -20,9 +21,9 @@ export const useGetInit = () => {
         refetchOnReconnect: true,
     });
 };
-export const useGetStaffByType = (type: string | undefined) =>
-    useApiGet<ApiListResponse<User>>(API_ENDPOINTS.STAFF.GET_STAFF_BY_TYPE, {
-        queryParams: {type: type},
+export const useGetStaff = () =>
+    useApiGet<ApiListResponse<UserGet>>(API_ENDPOINTS.STAFF.GET_STAFF, {
+      retry:0
     });
 
 export const useCreateUser = () =>
@@ -40,7 +41,7 @@ export const useGetPermissions = (id: string | number | undefined) =>
 export const useUpdatePermissions = (id: string | number | undefined) =>
     useApiMutation("put",API_ENDPOINTS.ROLE.UPDATE_ROLE(id));
 export const useGetClinic = () =>
-    useApiGet<ApiListResponse<GetClinicResponse>>(API_ENDPOINTS.CLINIC.GET_CLINIC);
+    useApiGet<ApiListResponse<Clinic>>(API_ENDPOINTS.CLINIC.GET_CLINIC);
 export const useUpdateClinic = (id: string | number | undefined) =>
     useApiMutation("put", API_ENDPOINTS.CLINIC.UPDATE_CLINIC(id))
 export const useDeleteClinic = (id: string | number | undefined) =>
@@ -53,8 +54,8 @@ export const useGetDoctor = (id:string|number|undefined) =>
     });
 export const useAddDoctor = () =>
     useApiMutation("post", API_ENDPOINTS.DOCTOR.ADD_DOCTOR);
-export const useUpdateDoctor = (doctorId: string | number | undefined, departmentId: string | number | undefined) =>
-    useApiMutation("put", API_ENDPOINTS.DOCTOR.UPDATE_DOCTOR(doctorId, departmentId))
+export const useUpdateDoctor = (id: string | number | undefined, ) =>
+    useApiMutation("put", API_ENDPOINTS.DOCTOR.UPDATE_DOCTOR(id ))
 export const useGetDoctorById = (id: string | number | undefined) =>
     useApiGet(API_ENDPOINTS.DOCTOR.GET_DOCTOR_BY_ID(id))
 export const useDeleteDoctor = (id: string | number | undefined) =>
@@ -74,3 +75,18 @@ export const useGetDepartmentById = (id: string | number | undefined) =>
 export const useDeleteDepartment = (id: string | number | undefined) =>
     useApiMutation("delete", API_ENDPOINTS.DEPARTMENT.DELETE_DEPARTMENT(id))
 
+// Patient API Hooks
+export const useAddPatient = () =>
+    useApiMutation("post", API_ENDPOINTS.PATIENT.ADD_PATIENT);
+
+export const useGetPatient = () =>
+    useApiGet<ApiListResponse<Patient>>(API_ENDPOINTS.PATIENT.GET_PATIENT);
+
+export const useGetPatientById = (id: string | number | undefined) =>
+    useApiGet(API_ENDPOINTS.PATIENT.GET_PATIENT_BY_ID(id));
+
+export const useUpdatePatient = (id: string | number | undefined) =>
+    useApiMutation("put", API_ENDPOINTS.PATIENT.UPDATE_PATIENT(id));
+
+export const useDeletePatient = (id: string | number | undefined) =>
+    useApiMutation("delete", API_ENDPOINTS.PATIENT.DELETE_PATIENT(id));

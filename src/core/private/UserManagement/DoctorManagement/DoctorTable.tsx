@@ -58,7 +58,7 @@ const DoctorComponent = ({ departmentId }: Props) => {
     const activeDoctor = doctors[activeIndex];
 
     const addDoctor = useAddDoctor();
-    const updateDoctor = useUpdateDoctor(selectedDoctor?.id, departmentId);
+    const updateDoctor = useUpdateDoctor(selectedDoctor?.id);
     const deleteDoctor = useDeleteDoctor(selectedDoctor?.id);
 
     const form = useForm<Doctor>({

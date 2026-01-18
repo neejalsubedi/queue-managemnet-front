@@ -24,7 +24,7 @@ export const useApiGet = <T>(
     enabled = true,
     axiosConfig,
     responseType,
-    staleTime = Infinity,
+    staleTime = 0,
     refetchOnMount = false,
     refetchOnWindowFocus = false,
     refetchOnReconnect = false,

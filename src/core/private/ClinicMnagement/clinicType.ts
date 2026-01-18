@@ -6,8 +6,4 @@ export interface Clinic {
     address: string;
     contact: string;
 }
-export interface GetClinicResponse {
-    statusCode: number;
-    message: string;
-    data: Clinic[];
-}
+

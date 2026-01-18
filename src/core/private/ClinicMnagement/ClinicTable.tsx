@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
     Dialog,
     DialogClose,
@@ -9,7 +9,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog.tsx";
 
 import {
     Form,
@@ -18,17 +18,17 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/form.tsx";
+import { Input } from "@/components/ui/input.tsx";
 
 import {
     useAddClinic,
     useDeleteClinic,
     useGetClinic,
     useUpdateClinic,
-} from "@/components/ApiCall/Api";
+} from "@/components/ApiCall/Api.ts";
 
-import { Clinic } from "@/core/private/UserManagement/ClinicMnagement/clinicType";
+import { Clinic } from "@/core/private/ClinicMnagement/clinicType.ts";
 
 import {
     Carousel,
@@ -37,7 +37,7 @@ import {
     CarouselNext,
     CarouselPrevious,
     type CarouselApi,
-} from "@/components/ui/carousel";
+} from "@/components/ui/carousel.tsx";
 import Department from "@/core/private/UserManagement/DepartmentManagement/Department.tsx";
 import Doctor from "@/core/private/UserManagement/DoctorManagement/DoctorTable.tsx";
 
@@ -107,7 +107,8 @@ const ClinicTable = () => {
 
     const handleDeleteClinic = (clinic: Clinic) => {
         if (!clinic.id) return;
-        deleteClinic.mutate(clinic.id, { onSuccess: refetch });
+        setSelectedClinic(clinic)
+        deleteClinic.mutate(clinic.id, { onSuccess:()=> refetch });
     };
 
     const onSubmit = (data: Clinic) => {

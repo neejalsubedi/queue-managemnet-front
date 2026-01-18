@@ -21,7 +21,7 @@ import loginbg from "../../../assets/loginbg.png";
 import loginbg2 from "../../../assets/loginbg2.png";
 
 const schema = z.object({
-  email: z.string().min(1, "Email is required"),
+username: z.string().min(1,"enter your username"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -39,7 +39,7 @@ const Login = () => {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -97,7 +97,7 @@ const Login = () => {
             >
               <FormField
                 control={form.control}
-                name="email"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
