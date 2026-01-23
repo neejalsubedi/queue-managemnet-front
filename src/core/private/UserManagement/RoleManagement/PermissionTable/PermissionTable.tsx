@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {useLocation, useNavigate, useParams} from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 import {
@@ -9,59 +9,68 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-// types/permission.ts
+/* ================= TYPES ================= */
 export interface Permission {
-    module_id: string;
+    id: number;
     name: string;
     code: string;
-    can_read: boolean;
-    can_write: boolean;
-    can_update: boolean;
-    can_delete: boolean;
+    canRead: boolean;
+    canWrite: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
 }
 
+/* ================= COMPONENT ================= */
 const PermissionTable = () => {
     const { id } = useParams<{ id: string }>();
-    const location = useLocation();
-    console.log(location.state.role_name, location.state.code);
-    const role_name=location.state.role_name;
-    const code=location.state.code;
-    const roleId = id ?? undefined;
-
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const { data } = useGetPermissions(id);
+    const role_name = location.state?.role_name;
+    const code = location.state?.code;
+    const roleId = Number(id);
+
+    const { data } = useGetPermissions(roleId);
     const updatePermissions = useUpdatePermissions(roleId);
 
     const [permissions, setPermissions] = useState<Permission[]>([]);
 
-    /* Populate permissions when API data arrives */
+    /* Populate permissions */
     useEffect(() => {
         if (data?.data) {
-            setPermissions(data?.data);
+            const mappedPermissions: Permission[] = data.data.map((item: any) => ({
+                id: Number(item.module_id),
+                name: item.name,
+                code: item.code,
+                canRead: item.can_read,
+                canWrite: item.can_write,
+                canUpdate: item.can_update,
+                canDelete: item.can_delete,
+            }));
+
+            setPermissions(mappedPermissions);
         }
     }, [data]);
 
+    /* Toggle single checkbox */
     const handleCheckboxChange = (
         permissionId: number,
         field: keyof Permission
     ) => {
         setPermissions((prev) =>
             prev.map((item) =>
-                item.module_id === permissionId
+                item.id === permissionId
                     ? { ...item, [field]: !item[field] }
                     : item
             )
         );
     };
-    useEffect(() => {
-        console.log("Permissions IDs:", permissions.map(p => p));
-    }, [permissions]);
 
+    /* ✅ FIXED: Select All (row-wise) */
     const handleSelectAllToggle = (permissionId: number) => {
         setPermissions((prev) =>
             prev.map((item) => {
-                if (item.module_id !== permissionId) return item;
+                if (item.id !== permissionId) return item;
 
                 const isAllSelected =
                     item.canRead &&
@@ -80,17 +89,23 @@ const PermissionTable = () => {
         );
     };
 
+    /* Save */
     const handleSaveChanges = () => {
-        const payload={...permissions,role_name,code};
-        updatePermissions.mutate(payload, {
-            onSuccess: () => {
-                navigate("/role-management");
-            },
-        });
-    };
+        const payload = {
+            role_name,
+            code,
+            permissions: permissions.map((p) => ({
+                module_id: p.id,
+                can_read: p.canRead,
+                can_write: p.canWrite,
+                can_update: p.canUpdate,
+                can_delete: p.canDelete,
+            })),
+        };
 
-    const handleBack = () => {
-        navigate(-1);
+        updatePermissions.mutate(payload, {
+            onSuccess: () => navigate("/role-management"),
+        });
     };
 
     return (
@@ -104,12 +119,7 @@ const PermissionTable = () => {
                 </div>
 
                 <div className="flex gap-3">
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-gray-400"
-                        onClick={handleBack}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => navigate(-1)}>
                         <ArrowLeft />
                     </Button>
 

@@ -39,7 +39,10 @@ export interface GetUserResponse {
 
 export interface User {
   id: number;
+
   full_name: string;
+    fullName?: string;
+    username?: string;
   email: string;
   role_id: number;
   role_name: string;

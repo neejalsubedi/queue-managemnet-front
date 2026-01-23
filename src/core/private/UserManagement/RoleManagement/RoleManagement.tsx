@@ -52,7 +52,7 @@ const navigate=useNavigate();
     useEffect(() => {
         if (mode === "edit" && selectedRole) {
             form.reset({
-                role_name: selectedRole.role_name,
+                name: selectedRole.name,
                 code: selectedRole.code,
                 description: selectedRole.description,
             });
@@ -97,7 +97,7 @@ const navigate=useNavigate();
 
     const columns: Column<RoleResponse>[] = useMemo(
         () => [
-            { header: "Role Name", accessor: "role_name" },
+            { header: "Role Name", accessor: "name" },
             { header: "Code", accessor: "code" },
             { header: "Description", accessor: "description" },
         ],
@@ -120,7 +120,7 @@ const navigate=useNavigate();
                 data={data?.data || []}
                 columns={columns}
                 onEdit={(row) => handleEdit(row)}
-                onPermission={(row) => navigate(`/role-management/permissions/${row.id}`,{state:{role_name:row.role_name,code:row.code}})}
+                onPermission={(row) => navigate(`/role-management/permissions/${row.id}`,{state:{role_name:row.name,code:row.code}})}
             />
 
             <Dialog
@@ -149,7 +149,7 @@ const navigate=useNavigate();
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="role_name"
+                                    name="name"
                                     rules={{ required: "Role name is required" }}
                                     render={({ field }) => (
                                         <FormItem>

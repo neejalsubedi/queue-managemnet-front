@@ -1,7 +1,7 @@
-import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import * as Icons from "lucide-react";
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import { ModuleItem } from "../ContextApi/AuthContext";
 
 function getIcon(name?: string) {
@@ -15,7 +15,7 @@ function getIcon(name?: string) {
 
 export function SidebarNav({ modules }: { modules: ModuleItem[] }) {
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-1.5 px-2">
       {modules.map((item) => (
         <SidebarItem key={item.name} item={item} />
       ))}
@@ -35,29 +35,40 @@ function SidebarItem({ item }: { item: ModuleItem }) {
         <>
           {/* Parent Item */}
           <div
-            className="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+            className={cn(
+              "group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
+              "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm",
+              open && "bg-accent/50 text-foreground"
+            )}
             onClick={() => setOpen(!open)}
           >
             <div className="flex items-center gap-3">
-              <Icon className="h-5 w-5" />
-              {item.name}
+              <Icon className="h-4.5 w-4.5 transition-colors group-hover:text-primary" />
+              <span>{item.name}</span>
             </div>
             <Icons.ChevronDown
               className={cn(
-                "h-4 w-4 transition-transform",
-                open && "rotate-180"
+                "h-4 w-4 text-muted-foreground/70 transition-transform duration-200",
+                open && "rotate-180 text-foreground"
               )}
             />
           </div>
 
           {/* Nested Items */}
-          {open && (
-            <ul className="ml-6 mt-1 space-y-1 border-l pl-3">
-              {item.moduleList.map((child) => (
-                <SidebarItem key={child.name} item={child} />
-              ))}
+          <div
+            className={cn(
+              "grid transition-all duration-300 ease-in-out",
+              open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            )}
+          >
+            <ul className="overflow-hidden">
+              <div className="ml-6 mt-1 space-y-1 border-l border-border/50 pl-3">
+                {item.moduleList.map((child) => (
+                  <SidebarItem key={child.name} item={child} />
+                ))}
+              </div>
             </ul>
-          )}
+          </div>
         </>
       ) : (
         // Childless item -> NavLink
@@ -65,14 +76,16 @@ function SidebarItem({ item }: { item: ModuleItem }) {
           to={item.path?.startsWith("/") ? item.path : `/${item.path}`}
           className={({ isActive }) =>
             cn(
-              "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition hover:bg-accent hover:text-accent-foreground",
+              "group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
               isActive
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm"
             )
           }
         >
-          <Icon className="mr-3 h-5 w-5" />
+          <Icon className={cn("mr-3 h-4.5 w-4.5 transition-colors", 
+             // inactive icon color logic if needed
+          )} />
           {item.name}
         </NavLink>
       )}

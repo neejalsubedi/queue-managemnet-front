@@ -2,56 +2,56 @@
 
 @layer base {
   :root {
-    /* Base Colors */
+    /* Base Colors - Clean & Airy */
     --background: 210 20% 98%;
-    --foreground: 220 13% 18%;
+    --foreground: 222 47% 11%;
 
-    /* Card Colors */
+    /* Card Colors - Pure White with subtle warm tint */
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
+    --card-foreground: 222 47% 11%;
 
-    /* Popover Colors */
+    /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary - Medical Blue */
-    --primary: 213 94% 68%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 213 94% 85%;
-    --primary-dark: 213 94% 45%;
+    /* Primary - Vibrant Royal Blue */
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --primary-light: 221 83% 90%;
+    --primary-dark: 221 83% 40%;
 
-    /* Secondary - Professional Green */
-    --secondary: 158 64% 52%;
+    /* Secondary - Soft Teal */
+    --secondary: 173 58% 39%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-light: 158 64% 85%;
+    --secondary-light: 173 58% 90%;
 
-    /* Success - Medical Green */
-    --success: 142 71% 45%;
+    /* Success - Emerald */
+    --success: 151 55% 42%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 71% 85%;
+    --success-light: 151 55% 90%;
 
-    /* Muted Colors */
-    --muted: 210 40% 96%;
+    /* Muted */
+    --muted: 214 32% 91%;
     --muted-foreground: 215 16% 47%;
 
-    /* Accent Colors */
-    --accent: 213 94% 95%;
-    --accent-foreground: 213 94% 20%;
+    /* Accent - For hovers and highlights */
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
 
-    /* Warning - Pharmacy Orange */
-    --warning: 38 92% 50%;
+    /* Warning */
+    --warning: 35 92% 55%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 38 92% 85%;
+    --warning-light: 35 92% 90%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --destructive-light: 0 84% 85%;
+    --destructive-foreground: 210 40% 98%;
+    --destructive-light: 0 84% 90%;
 
     /* Border & Input */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 213 94% 68%;
+    --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
@@ -59,105 +59,102 @@
     --gradient-primary: linear-gradient(
       135deg,
       hsl(var(--primary)),
-      hsl(var(--primary-dark))
+      hsl(224 76% 48%)
     );
     --gradient-secondary: linear-gradient(
       135deg,
       hsl(var(--secondary)),
-      hsl(var(--success))
+      hsl(160 84% 39%)
     );
     --gradient-subtle: linear-gradient(
       180deg,
       hsl(var(--background)),
-      hsl(var(--muted))
+      hsl(210 20% 96%)
     );
     --gradient-card: linear-gradient(
       145deg,
       hsl(0 0% 100%),
-      hsl(var(--accent))
+      hsl(210 20% 99%)
     );
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(var(--primary) / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(var(--primary) / 0.1),
-      0 2px 4px -1px hsl(var(--primary) / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(var(--primary) / 0.1),
-      0 4px 6px -2px hsl(var(--primary) / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(var(--primary) / 0.1),
-      0 10px 10px -5px hsl(var(--primary) / 0.04);
+    /* Shadows - softer and more spread out */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 
-    /* Sidebar */
+    /* Sidebar - Glass-like vars */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 13% 18%;
-    --sidebar-primary: 213 94% 68%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 213 94% 95%;
-    --sidebar-accent-foreground: 213 94% 20%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 213 94% 68%;
+    --sidebar-ring: 221 83% 53%;
   }
 
   .dark {
-    /* Base Colors - Dark Mode */
-    --background: 220 13% 9%;
-    --foreground: 210 20% 98%;
+    /* Base Colors - Dark & Deep */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    /* Card Colors - Dark Mode */
-    --card: 220 13% 12%;
-    --card-foreground: 210 20% 98%;
+    /* Card Colors */
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
 
-    /* Popover Colors - Dark Mode */
-    --popover: 220 13% 12%;
-    --popover-foreground: 210 20% 98%;
+    /* Popover */
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary - Medical Blue (Dark Mode) */
-    --primary: 213 94% 68%;
-    --primary-foreground: 220 13% 9%;
-    --primary-light: 213 94% 25%;
-    --primary-dark: 213 94% 45%;
+    /* Primary */
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --primary-light: 217 91% 25%;
+    --primary-dark: 217 91% 40%;
 
-    /* Secondary - Professional Green (Dark Mode) */
-    --secondary: 158 64% 52%;
-    --secondary-foreground: 220 13% 9%;
-    --secondary-light: 158 64% 25%;
+    /* Secondary */
+    --secondary: 173 58% 39%;
+    --secondary-foreground: 210 40% 98%;
+    --secondary-light: 173 58% 25%;
 
-    /* Success - Medical Green (Dark Mode) */
-    --success: 142 71% 45%;
-    --success-foreground: 220 13% 9%;
-    --success-light: 142 71% 25%;
+    /* Success */
+    --success: 151 55% 42%;
+    --success-foreground: 210 40% 98%;
+    --success-light: 151 55% 25%;
 
-    /* Muted Colors - Dark Mode */
-    --muted: 220 13% 15%;
-    --muted-foreground: 215 16% 65%;
+    /* Muted */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    /* Accent Colors - Dark Mode */
-    --accent: 220 13% 18%;
-    --accent-foreground: 213 94% 68%;
+    /* Accent */
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
 
-    /* Warning - Pharmacy Orange (Dark Mode) */
-    --warning: 38 92% 50%;
-    --warning-foreground: 220 13% 9%;
-    --warning-light: 38 92% 25%;
+    /* Warning */
+    --warning: 35 92% 55%;
+    --warning-foreground: 222 47% 11%;
+    --warning-light: 35 92% 25%;
 
-    /* Destructive - Dark Mode */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
-    --destructive-light: 0 84% 25%;
+    /* Destructive */
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --destructive-light: 0 62% 15%;
 
-    /* Border & Input - Dark Mode */
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
+    /* Border & Input */
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
     --ring: 213 94% 68%;
 
-    /* Sidebar - Dark Mode */
-    --sidebar-background: 220 13% 12%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 213 94% 68%;
-    --sidebar-primary-foreground: 220 13% 9%;
-    --sidebar-accent: 220 13% 18%;
-    --sidebar-accent-foreground: 213 94% 68%;
-    --sidebar-border: 220 13% 18%;
-    --sidebar-ring: 213 94% 68%;
+    /* Sidebar */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -169,6 +166,7 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
@@ -231,6 +229,21 @@
   .rounded-lg { border-radius: var(--radius); }
   .rounded-md { border-radius: calc(var(--radius) - 2px); }
   .rounded-sm { border-radius: calc(var(--radius) - 4px); }
+
+  /* Glassmorphism Utilities */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .glass {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
   /* Animations */
   @keyframes accordion-down {

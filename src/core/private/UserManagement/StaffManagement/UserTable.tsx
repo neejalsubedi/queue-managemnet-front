@@ -76,7 +76,7 @@ const UserTable = () => {
         setIsOpen(true);
     };
 
-    const handleEditUser = (user: User) => {
+    const handleEditUser = (user: any) => {
         setMode("edit");
         setSelectedUser(user);
         setIsOpen(true);
@@ -141,22 +141,27 @@ const UserTable = () => {
     );
 
     // convert data to NiceSelect options
-    const roleOptions: Option[] = role?.data?.map((r: any) => ({
-        label: r.code,
-        value: r.id,
-    })) || [];
+    const roleOptions: Option<number>[] =
+        role?.data?.map((r: any) => ({
+            label: r.code,
+            value: r.id,
+        })) || [];
 
-    const clinicOptions: Option[] = clinics?.data?.map((c: any) => ({
-        label: c.name,
-        value: c.id,
-    })) || [];
 
-    const genderOptions: Option[] = [
+    const clinicOptions: Option<number>[] =
+        clinics?.data?.map((c: any) => ({
+            label: c.name,
+            value: c.id,
+        })) || [];
+
+
+    const genderOptions: Option<string>[] = [
         { label: "M", value: "M" },
         { label: "F", value: "F" },
     ];
 
-    const statusOptions: Option[] = [
+
+    const statusOptions: Option<boolean>[] = [
         { label: "Active", value: true },
         { label: "Inactive", value: false },
     ];

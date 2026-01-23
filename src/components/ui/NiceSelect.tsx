@@ -4,8 +4,8 @@ import Select, {
 } from "react-select";
 
 
-export type Option = {
-    value: string | number;
+export type Option<T = string | number|boolean> = {
+    value: T;
     label: string;
 };
 

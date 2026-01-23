@@ -3,9 +3,10 @@ import {API_ENDPOINTS} from "../constants/ApiEndpoints/apiEndpoints";
 import {UserData} from "../ContextApi/AuthContext";
 import {useApiGet} from "./ApiGet";
 import {useApiMutation} from "./ApiMutation";
-import {RoleResponse} from "@/core/private/UserManagement/RoleManagement/roleTypes.ts";
+import {PermissionApiItem, RoleResponse} from "@/core/private/UserManagement/RoleManagement/roleTypes.ts";
 import {Clinic} from "@/core/private/ClinicMnagement/clinicType.ts";
 import {Patient} from "@/core/private/PatientMangement/type.ts";
+import {Doctor} from "@/core/private/ClinicMnagement/DoctorManagement/doctorTypes.tsx";
 
 export type ApiListResponse<T> = {
     statusCode: number;
@@ -37,7 +38,7 @@ export const useAddRole = () =>
 export const useUpdateRole = (id: string | number | undefined) =>
     useApiMutation("put",API_ENDPOINTS.ROLE.UPDATE_ROLE(id));
 export const useGetPermissions = (id: string | number | undefined) =>
-    useApiGet(API_ENDPOINTS.ROLE.GET_PERMISSIONS(id));
+    useApiGet<ApiListResponse<PermissionApiItem>>(API_ENDPOINTS.ROLE.GET_PERMISSIONS(id));
 export const useUpdatePermissions = (id: string | number | undefined) =>
     useApiMutation("put",API_ENDPOINTS.ROLE.UPDATE_ROLE(id));
 export const useGetClinic = () =>
@@ -49,7 +50,7 @@ export const useDeleteClinic = (id: string | number | undefined) =>
 export const useAddClinic = () =>
     useApiMutation("post", API_ENDPOINTS.CLINIC.ADD_CLINIC)
 export const useGetDoctor = (id:string|number|undefined) =>
-    useApiGet(API_ENDPOINTS.DOCTOR.GET_DOCTOR,{
+    useApiGet<ApiListResponse<Doctor>>(API_ENDPOINTS.DOCTOR.GET_DOCTOR,{
         queryParams: {departmentId:id}
     });
 export const useAddDoctor = () =>
@@ -90,3 +91,7 @@ export const useUpdatePatient = (id: string | number | undefined) =>
 
 export const useDeletePatient = (id: string | number | undefined) =>
     useApiMutation("delete", API_ENDPOINTS.PATIENT.DELETE_PATIENT(id));
+export const useGetDoctorShift=(doctorId:string|number|undefined,departmentId:string|undefined|number)=>
+    useApiGet(API_ENDPOINTS.DOCTOR_SHIFT.GET_DOCTOR_SHIFT(doctorId,departmentId))
+export const  useSaveDoctorShift=(doctorId:string|number|undefined,departmentId:string|undefined|number)=>
+    useApiMutation("put",API_ENDPOINTS.DOCTOR_SHIFT.ADD_DOCTOR_SHIFT(doctorId,departmentId))

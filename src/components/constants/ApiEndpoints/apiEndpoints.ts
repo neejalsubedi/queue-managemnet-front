@@ -86,6 +86,11 @@ export const API_ENDPOINTS = {
         DELETE_PATIENT:(id:string|number|undefined)=>`api/patient/${id}`,
         GET_PATIENT_BY_ID:(id:string|number|undefined)=>`api/patient/${id}`,
         UPDATE_PATIENT:  (id:string|number|undefined)=>`api/patient/${id}`,
+    },
+    DOCTOR_SHIFT :{
+        GET_DOCTOR_SHIFT:(doctorId:string|number|undefined,departmentId:string|number|undefined)=>`/api/doctor-shifts/${doctorId}/${departmentId}`,
+        ADD_DOCTOR_SHIFT:(doctorId:string|number|undefined,departmentId:string|number|undefined)=>`/api/doctor-shifts/${doctorId}/${departmentId}`,
+
     }
 
 };
