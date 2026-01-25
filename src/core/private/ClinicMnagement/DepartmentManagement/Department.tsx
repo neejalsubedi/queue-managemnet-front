@@ -243,6 +243,9 @@ const Department = ({ clinicId, onSelectDepartment }: DepartmentProps) => {
                         {/* Navigation */}
                         <CarouselPrevious className="-left-10 h-8 w-8 border-none bg-card/50 hover:bg-card shadow-sm" />
                         <CarouselNext className="-right-10 h-8 w-8 border-none bg-card/50 hover:bg-card shadow-sm" />
+                        <div className="mt-4 text-center text-sm text-muted-foreground">
+                            {activeIndex + 1} / {departments.length}
+                        </div>
                     </Carousel>
                 </div>
             ) : (

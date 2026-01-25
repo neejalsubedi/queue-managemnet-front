@@ -91,6 +91,18 @@ export const API_ENDPOINTS = {
         GET_DOCTOR_SHIFT:(doctorId:string|number|undefined,departmentId:string|number|undefined)=>`/api/doctor-shifts/${doctorId}/${departmentId}`,
         ADD_DOCTOR_SHIFT:(doctorId:string|number|undefined,departmentId:string|number|undefined)=>`/api/doctor-shifts/${doctorId}/${departmentId}`,
 
-    }
+    },
+APPOINTMENT:{
+        GET_LIVE_APPOINTMENT:`/api/appointments/live`,
+        ADD_APPOINTMENT:`/api/appointments/book`,
+    CHECK_IN:(id:number|undefined|string)=>`/api/appointments/check-in/${id}`,
+    START:(id:number|undefined|string)=>`/api/appointments/start/${id}`,
+    COMPLETE:(id:number|undefined|string)=>`/api/appointments/complete/${id}`,
+    CANCEL:(id:number|undefined|string)=>`/api/appointments/cancel/${id}`,
+    NO_SHOWN:(id:number|undefined|string)=>`/api/appointments/no-show/${id}`,
+    UPDATE:(id:number|undefined|string)=>`/api/appointments/update/${id}`,
+    GET_HISTORY:`api/appointments/history`,
 
+
+    }
 };

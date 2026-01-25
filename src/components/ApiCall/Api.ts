@@ -51,7 +51,9 @@ export const useAddClinic = () =>
     useApiMutation("post", API_ENDPOINTS.CLINIC.ADD_CLINIC)
 export const useGetDoctor = (id:string|number|undefined) =>
     useApiGet<ApiListResponse<Doctor>>(API_ENDPOINTS.DOCTOR.GET_DOCTOR,{
-        queryParams: {departmentId:id}
+        queryParams: {departmentId:id},
+        enabled:!!id,
+
     });
 export const useAddDoctor = () =>
     useApiMutation("post", API_ENDPOINTS.DOCTOR.ADD_DOCTOR);
@@ -67,7 +69,8 @@ export const useAddDepartment = () =>
 
 export const useGetDepartment = (id:string|number|undefined) =>
     useApiGet(API_ENDPOINTS.DEPARTMENT.GET_DEPARTMENT,{
-        queryParams:{clinicId:id}
+        queryParams:{clinicId:id},
+        enabled:!!id,
     });
 export const useUpdateDepartment = ( departmentId: string | number | undefined) =>
     useApiMutation("put", API_ENDPOINTS.DEPARTMENT.UPDATE_DEPARTMENT( departmentId))
@@ -84,7 +87,9 @@ export const useGetPatient = () =>
     useApiGet<ApiListResponse<Patient>>(API_ENDPOINTS.PATIENT.GET_PATIENT);
 
 export const useGetPatientById = (id: string | number | undefined) =>
-    useApiGet(API_ENDPOINTS.PATIENT.GET_PATIENT_BY_ID(id));
+    useApiGet(API_ENDPOINTS.PATIENT.GET_PATIENT_BY_ID(id),{
+        enabled:!!id
+    });
 
 export const useUpdatePatient = (id: string | number | undefined) =>
     useApiMutation("put", API_ENDPOINTS.PATIENT.UPDATE_PATIENT(id));
@@ -95,3 +100,50 @@ export const useGetDoctorShift=(doctorId:string|number|undefined,departmentId:st
     useApiGet(API_ENDPOINTS.DOCTOR_SHIFT.GET_DOCTOR_SHIFT(doctorId,departmentId))
 export const  useSaveDoctorShift=(doctorId:string|number|undefined,departmentId:string|undefined|number)=>
     useApiMutation("put",API_ENDPOINTS.DOCTOR_SHIFT.ADD_DOCTOR_SHIFT(doctorId,departmentId))
+// ADD / BOOK appointment
+export const useAddAppointment = () =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.ADD_APPOINTMENT);
+
+// GET live appointments
+export const useGetLiveAppointments = (
+    clinic_id?: string | number,
+    department_id?: string | number,
+    doctor_id?: string | number
+) =>
+    useApiGet(API_ENDPOINTS.APPOINTMENT.GET_LIVE_APPOINTMENT, {
+        queryParams: {
+            clinic_id:clinic_id,
+            department_id: department_id,
+            doctor_id:doctor_id,
+        },
+        enabled: !!clinic_id && !!department_id && !!doctor_id,
+    });
+
+
+// GET appointment history
+export const useGetAppointmentHistory = () =>
+    useApiGet(API_ENDPOINTS.APPOINTMENT.GET_HISTORY);
+
+// CHECK-IN appointment
+export const useCheckInAppointment = (id: string | number | undefined) =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.CHECK_IN(id));
+
+// START appointment
+export const useStartAppointment = (id: string | number | undefined) =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.START(id));
+
+// COMPLETE appointment
+export const useCompleteAppointment = (id: string | number | undefined) =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.COMPLETE(id));
+
+// CANCEL appointment
+export const useCancelAppointment = (id: string | number | undefined) =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.CANCEL(id));
+
+// NO-SHOW appointment
+export const useNoShowAppointment = (id: string | number | undefined) =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.NO_SHOWN(id));
+
+// UPDATE appointment
+export const useUpdateAppointment = (id: string | number | undefined) =>
+    useApiMutation("put", API_ENDPOINTS.APPOINTMENT.UPDATE(id));

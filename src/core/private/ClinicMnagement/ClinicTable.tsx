@@ -245,6 +245,9 @@ const ClinicTable = () => {
                         </CarouselContent>
                         <CarouselPrevious className="-left-12 h-10 w-10 border-none bg-card/50 hover:bg-card shadow-sm" />
                         <CarouselNext className="-right-12 h-10 w-10 border-none bg-card/50 hover:bg-card shadow-sm" />
+                         <div className="mt-4 text-center text-sm text-muted-foreground">
+                             {activeIndex + 1} / {clinics.length}
+                         </div>
                     </Carousel>
                 </div>
             ) : (
