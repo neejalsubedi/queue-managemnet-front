@@ -11,8 +11,16 @@ export enum AppointmentStatusEnum {
 }
 export  enum  AppointmentTypeEnum {
 
-Counselling= "COUNSELLING",
-    Regular_Checkup= "REGULAR_CHECKUP",
-    Follow_up= "FOLLOW_UP",
-    Operation= "OPERATION",
+    COUNSELLING= "COUNSELLING",
+    REGULAR_CHECKUP= "REGULAR_CHECKUP",
+    FOLLOW_UP= "FOLLOW_UP",
+    OPERATION= "OPERATION",
+}
+
+export enum AppointmentTimeEnum{
+    Morning= "MORNING",
+    Afternoon= "AFTERNOON",
+    Evening= "EVENING",
+    Any= "ANY",
+
 }

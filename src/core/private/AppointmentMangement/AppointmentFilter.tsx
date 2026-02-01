@@ -1,5 +1,5 @@
+import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-
 import {
     useGetClinic,
     useGetDepartment,
@@ -8,7 +8,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 const AppointmentFilter = () => {
-    const { register, control } = useFormContext();
+    const { register, control, setValue } = useFormContext();
 
     const clinicId = useWatch({ control, name: "clinicId" });
     const departmentId = useWatch({ control, name: "departmentId" });
@@ -16,6 +16,20 @@ const AppointmentFilter = () => {
     const { data: clinicData } = useGetClinic();
     const { data: departmentData } = useGetDepartment(clinicId);
     const { data: doctorData } = useGetDoctor(departmentId);
+
+    /** ✅ Auto-select first clinic */
+    useEffect(() => {
+        if (!clinicId && clinicData?.data?.length) {
+            setValue("clinicId", clinicData.data[0].id);
+        }
+    }, [clinicData, clinicId, setValue]);
+
+    /** ✅ Auto-select first department after clinic is selected */
+    useEffect(() => {
+        if (clinicId && !departmentId && departmentData?.data?.length) {
+            setValue("departmentId", departmentData.data[0].id);
+        }
+    }, [clinicId, departmentData, departmentId, setValue]);
 
     return (
         <>
@@ -52,7 +66,7 @@ const AppointmentFilter = () => {
                 </select>
             </div>
 
-            {/* Doctor */}
+            {/* Doctor (NO auto-select as requested) */}
             <div>
                 <Label>Doctor</Label>
                 <select
@@ -71,4 +85,5 @@ const AppointmentFilter = () => {
         </>
     );
 };
-export  default  AppointmentFilter;
+
+export default AppointmentFilter;

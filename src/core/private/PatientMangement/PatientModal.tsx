@@ -34,7 +34,7 @@ type PatientModalProps = {
     mode: "add" | "edit";
     patient?: Patient | null;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (newPatientId?: number) => void;
 };
 
 const genderOptions: Option[] = [
@@ -102,13 +102,16 @@ export const PatientModal = ({
 
         if (mode === "add") {
             addPatient.mutate(payload, {
-                onSuccess: () => {
+                onSuccess: (res) => {
+                    const newPatientId = res?.data?.data;
+                    console.log("modal id",newPatientId)// 👈 extract id
                     form.reset();
-                    onSuccess();
+                    onSuccess(newPatientId);             // 👈 pass id upward
                     onClose();
                 },
             });
         }
+
 
         if (mode === "edit" && patient) {
             updatePatient.mutate(payload, {
@@ -240,6 +243,19 @@ export const PatientModal = ({
                                                 {...field}
                                             />
                                         </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Address</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="Enter address" />
+                                        </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />

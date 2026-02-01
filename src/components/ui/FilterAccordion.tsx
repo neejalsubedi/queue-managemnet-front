@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import type { DateRange } from "react-day-picker";
 import { useForm, FormProvider } from "react-hook-form";
 import {
@@ -25,9 +25,16 @@ type FilterAccordionProps = {
     }) => void;
     onReset?: () => void;
 };
+const today = new Date();
+
+const todayRange: DateRange = {
+    from: today,
+    to: today,
+};
+
 export function FilterAccordion({
                                     title = "Filters",
-                                    initialRange,
+                                    initialRange=todayRange,
                                     dateRequired = true,
                                     children,
                                     onApply,
@@ -59,6 +66,18 @@ export function FilterAccordion({
         setRange(initialRange);
         onReset?.();
     };
+    const watchedValues = form.watch();
+
+    useEffect(() => {
+        const filledCount = Object.values(watchedValues).filter(
+            (v) => v !== undefined && v !== ""
+        ).length;
+
+        if (filledCount >= 2) {
+            handleApply();
+        }
+    }, [watchedValues]);
+
 
     return (
         <Accordion

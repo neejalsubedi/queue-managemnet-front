@@ -1,781 +1,926 @@
-// import * as React from "react"
-
-// import { cn } from "@/lib/utils"
-
-// const Table = React.forwardRef<
-//   HTMLTableElement,
-//   React.HTMLAttributes<HTMLTableElement>
-// >(({ className, ...props }, ref) => (
-//   <div className="relative w-full overflow-auto">
-//     <table
-//       ref={ref}
-//       className={cn("w-full caption-bottom text-sm", className)}
-//       {...props}
-//     />
-//   </div>
-// ))
-// Table.displayName = "Table"
-// const TableHeader = React.forwardRef<
-//   HTMLTableSectionElement,
-//   React.HTMLAttributes<HTMLTableSectionElement>
-// >(({ className, ...props }, ref) => (
-//   <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
-// ))
-// TableHeader.displayName = "TableHeader"
-
-// const TableBody = React.forwardRef<
-//   HTMLTableSectionElement,
-//   React.HTMLAttributes<HTMLTableSectionElement>
-// >(({ className, ...props }, ref) => (
-//   <tbody
-//     ref={ref}
-//     className={cn("[&_tr:last-child]:border-0", className)}
-//     {...props}
-//   />
-// ))
-// TableBody.displayName = "TableBody"
-
-// const TableFooter = React.forwardRef<
-//   HTMLTableSectionElement,
-//   React.HTMLAttributes<HTMLTableSectionElement>
-// >(({ className, ...props }, ref) => (
-//   <tfoot
-//     ref={ref}
-//     className={cn(
-//       "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
-//       className
-//     )}
-//     {...props}
-//   />
-// ))
-// TableFooter.displayName = "TableFooter"
-
-// const TableRow = React.forwardRef<
-//   HTMLTableRowElement,
-//   React.HTMLAttributes<HTMLTableRowElement>
-// >(({ className, ...props }, ref) => (
-//   <tr
-//     ref={ref}
-//     className={cn(
-//       "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
-//       className
-//     )}
-//     {...props}
-//   />
-// ))
-// TableRow.displayName = "TableRow"
-
-// const TableHead = React.forwardRef<
-//   HTMLTableCellElement,
-//   React.ThHTMLAttributes<HTMLTableCellElement>
-// >(({ className, ...props }, ref) => (
-//   <th
-//     ref={ref}
-//     className={cn(
-//       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
-//       className
-//     )}
-//     {...props}
-//   />
-// ))
-// TableHead.displayName = "TableHead"
-
-// const TableCell = React.forwardRef<
-//   HTMLTableCellElement,
-//   React.TdHTMLAttributes<HTMLTableCellElement>
-// >(({ className, ...props }, ref) => (
-//   <td
-//     ref={ref}
-//     className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
-//     {...props}
-//   />
-// ))
-// TableCell.displayName = "TableCell"
-
-// const TableCaption = React.forwardRef<
-//   HTMLTableCaptionElement,
-//   React.HTMLAttributes<HTMLTableCaptionElement>
-// >(({ className, ...props }, ref) => (
-//   <caption
-//     ref={ref}
-//     className={cn("mt-4 text-sm text-muted-foreground", className)}
-//     {...props}
-//   />
-// ))
-// TableCaption.displayName = "TableCaption"
-
-// export {
-//   Table,
-//   TableHeader,
-//   TableBody,
-//   TableFooter,
-//   TableHead,
-//   TableRow,
-//   TableCell,
-//   TableCaption,
-// }
-import React, { useEffect, useMemo, useState } from "react";
-import { FaShieldAlt } from "react-icons/fa";
+import React, { useState, useMemo, useEffect } from "react";
 import {
-  FiCheckCircle,
-  FiChevronDown,
-  FiChevronUp,
-  FiEdit,
-  FiEye,
-  FiNavigation2,
-  FiTrash2,
+    FiChevronUp,
+    FiChevronDown,
+    FiEdit,
+    FiTrash2,
+    FiEye,
+    FiCheckCircle,
 } from "react-icons/fi";
-import { ImCross } from "react-icons/im";
+import { useDebounce } from "use-debounce";
 
 import ConfirmModal from "./ConfirmModal";
+import { FaShieldAlt } from "react-icons/fa";
 
 import { COLORS } from "./Theme";
-import { Input } from "./input";
-import { useIsMobile } from "@/hooks/use-mobile";
+import {useIsMobile} from "@/hooks/use-mobile.tsx";
+import {Input} from "@/components/ui/input.tsx";
 
 type StringKeyOf<T> = Extract<keyof T, string>;
 
 function isStringKeyOf<T>(
-  key: keyof T | ((row: T, index: number) => React.ReactNode)
+    key: keyof T | ((row: T, index: number) => React.ReactNode) | undefined,
 ): key is StringKeyOf<T> {
-  return typeof key === "string";
+    return typeof key === "string";
 }
 
 export type Column<T> = {
-  header: string | React.ReactNode;
-  accessor: keyof T | ((row: T, index: number) => React.ReactNode);
-  className?: string;
+    header: string | React.ReactNode;
+    accessor?: keyof T | ((row: T, index: number) => React.ReactNode);
+    className?: string;
+    expandable?: (row: T) => React.ReactNode; // new property
 };
-
-type PaginationMode = "backend" | "frontend";
+// export type TableFilterOption = {
+//     label: string;
+//     value: string | number;
+// };
 
 type TableProps<T extends { id: number | string }> = {
-  data: T[];
-  columns: Column<T>[];
-  className?: string;
-  emptyText?: string;
-  searchable?: boolean;
-  sortable?: boolean;
-
-  // pagination control
-  paginationMode?: PaginationMode; // if omitted: auto-detect (backend if onPageChange is provided, else frontend)
-
-  // backend / frontend shared base props
-  page?: number; // used in backend; ignored in frontend (frontend uses internal state)
-  limit?: number; // page size (rows per page)
-  total?: number; // total count; used in backend; for frontend it's derived from data.length
-
-  // backend callbacks
-  onPageChange?: (page: number) => void;
-  onLimitChange?: (limit: number) => void;
-
-  // rows per page options
-  pageSizeOptions?: number[];
-
-  // actions
-  onView?: (row: T) => void;
-  onEdit?: (row: T) => void;
-  onApprove?: (row: T) => void;
-  onReject?: (row: T) => void;
-  onDelete?: (row: T) => void;
-  onPermission?: (row: T) => void;
-  onNavigate?: (row: T) => void;
-  snRequired?: boolean;
-  headerRequired?: boolean;
+    data: T[];
+    columns: Column<T>[];
+    className?: string;
+    emptyText?: string;
+    searchable?: boolean;
+    showPageSize?: boolean;
+    sortable?: boolean;
+    pagination?: boolean;
+    onView?: (row: T) => void;
+    onEdit?: (row: T) => void;
+    onApprove?: (row: T) => void;
+    onDelete?: (row: T) => void;
+    onPermission?: (row: T) => void;
+    totalItems?: number;
+    page?: number;
+    itemsPerPage?: number;
+    onPageChange?: (page: number) => void;
+    onSearchChange?: (search: string) => void;
+    onItemsPerPageChange?: (itemsPerPage: number) => void;
+    showEditButton?: (index: number) => boolean;
+    // filters?: TableFilterOption[];
+    // selectedFilter?: string | number;
+    // onFilterChange?: (value: string | number) => void;
+    selectable?: boolean;              // show checkbox column or not
+    selectedRowIds?: Array<T["id"]>;   // controlled selected rows
+    onSelectionChange?: (ids: Array<T["id"]>) => void;
 };
 
 function Table<T extends { id: number | string }>({
-  data,
-  columns,
-  className = "",
-  emptyText = "No data found.",
-  searchable = false,
-  sortable = false,
+                                                      data,
+                                                      columns,
+                                                      className = "",
+                                                      emptyText = "No data found.",
+                                                      searchable = false,
+                                                      showPageSize = false,
+                                                      sortable = false,
+                                                      pagination = true,
+                                                      onView,
+                                                      onEdit,
+                                                      onApprove,
+                                                      onDelete,
+                                                      onPermission,
+                                                      totalItems,
+                                                      page,
+                                                      itemsPerPage,
+                                                      onPageChange,
+                                                      onSearchChange,
+                                                      onItemsPerPageChange,
+                                                      showEditButton,
+                                                      // filters,
+                                                      // selectedFilter,
+                                                      // onFilterChange,
+                                                      selectable = false,
+                                                      selectedRowIds = [],
+                                                      onSelectionChange,
+                                                  }: TableProps<T>) {
+    const isMobile = useIsMobile();
+    const [searchText, setSearchText] = useState("");
+    const [debouncedSearch] = useDebounce(searchText, 500);
 
-  paginationMode,
-  page = 1,
-  limit: limitProp = 10,
-  total = 0,
-  onPageChange,
-  onLimitChange,
-  pageSizeOptions,
-
-  onView,
-  onEdit,
-  onApprove,
-  onDelete,
-  onReject,
-  onPermission,
-  onNavigate,
-  snRequired = true,
-  headerRequired = true,
-}: TableProps<T>) {
-  const isMobile = useIsMobile();
-  const [searchText, setSearchText] = useState("");
-
-  const [sortConfig, setSortConfig] = useState<{
-    key: StringKeyOf<T> | null;
-    direction: "asc" | "desc";
-  }>({
-    key: null,
-    direction: "asc",
-  });
-
-  // ------ Pagination Mode: backend vs frontend ------
-  const resolvedBackend =
-    paginationMode === "backend" ||
-    (!!onPageChange && paginationMode !== "frontend");
-  const isBackendPagination: boolean = resolvedBackend;
-
-  // Page size options and internal state
-  const pageSizeOptionsFinal =
-    pageSizeOptions && pageSizeOptions.length
-      ? pageSizeOptions
-      : [10, 25, 50, 100];
-
-  const [internalLimit, setInternalLimit] = useState<number>(
-    limitProp || pageSizeOptionsFinal[0]
-  );
-
-  useEffect(() => {
-    if (limitProp && limitProp > 0) {
-      setInternalLimit(limitProp);
-    }
-  }, [limitProp]);
-
-  const pageSize = internalLimit;
-
-  // Frontend current page internal state
-  const [internalPage, setInternalPage] = useState(1);
-
-  const currentPage = isBackendPagination ? page : internalPage;
-
-  const stringColumns = useMemo(() => {
-    return columns
-      .map((col) => (isStringKeyOf<T>(col.accessor) ? col.accessor : null))
-      .filter((c): c is StringKeyOf<T> => c !== null);
-  }, [columns]);
-
-  const [confirmState, setConfirmState] = useState<{
-    type: "delete" | "approve";
-    row: T | null;
-  } | null>(null);
-
-  const handleConfirm = () => {
-    if (!confirmState || !confirmState.row) return;
-    const { type, row } = confirmState;
-    if (type === "delete" && onDelete) onDelete(row);
-    else if (type === "approve" && onApprove) onApprove(row);
-    setConfirmState(null);
-  };
-
-  // ----------------- FILTER (search) -----------------
-  const filteredData = useMemo(() => {
-    if (!searchText.trim()) return data;
-    const lowerSearch = searchText.toLowerCase();
-    return data.filter((row) =>
-      stringColumns.some((key) => {
-        const val = row[key];
-        return (
-          typeof val === "string" && val.toLowerCase().includes(lowerSearch)
-        );
-      })
-    );
-  }, [data, searchText, stringColumns]);
-
-  // --------------- SORT (client-side) ----------------
-  const sortedData = useMemo(() => {
-    if (!sortable || !sortConfig.key) return filteredData;
-
-    const { key, direction } = sortConfig;
-
-    const sorted = [...filteredData].sort((a, b) => {
-      const aVal = a[key];
-      const bVal = b[key];
-
-      if (aVal == null && bVal != null) return direction === "asc" ? -1 : 1;
-      if (aVal != null && bVal == null) return direction === "asc" ? 1 : -1;
-      if (aVal == null && bVal == null) return 0;
-
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return direction === "asc" ? aVal - bVal : bVal - aVal;
-      }
-
-      const aStr = String(aVal);
-      const bStr = String(bVal);
-
-      if (aStr < bStr) return direction === "asc" ? -1 : 1;
-      if (aStr > bStr) return direction === "asc" ? 1 : -1;
-      return 0;
+    const [sortConfig, setSortConfig] = useState<{
+        key: StringKeyOf<T> | null;
+        direction: "asc" | "desc";
+    }>({
+        key: null,
+        direction: "asc",
     });
+    const [jumpPage, setJumpPage] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const isBackend = !!onPageChange;
+    const [pageSize, setPageSize] = useState(itemsPerPage ?? 10);
+    const [expandedRowId, setExpandedRowId] = useState<T["id"] | null>(null);
 
-    return sorted;
-  }, [filteredData, sortConfig, sortable]);
+    const toggleRow = (id: T["id"]) => {
+        setExpandedRowId((prev) => (prev === id ? null : id));
+    };
 
-  // ---- Total items & pages (backend vs frontend) ----
-  const totalItems = isBackendPagination
-    ? total || data.length
-    : sortedData.length;
-  const totalPages = totalItems > 0 ? Math.ceil(totalItems / pageSize) : 0;
+    useEffect(() => {
+        if (itemsPerPage && itemsPerPage !== pageSize) {
+            setPageSize(itemsPerPage);
+        }
+    }, [itemsPerPage]);
 
-  // keep frontend current page in bounds when data/pageSize changes
-  useEffect(() => {
-    if (!isBackendPagination) {
-      const newTotalPages =
-        totalItems > 0 ? Math.ceil(totalItems / pageSize) : 1;
-      if (internalPage > newTotalPages) {
-        setInternalPage(newTotalPages);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalItems, pageSize, isBackendPagination]);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [data, searchText, sortConfig]);
 
-  // reset to first page on search in frontend mode
-  useEffect(() => {
-    if (!isBackendPagination) {
-      setInternalPage(1);
-    }
-  }, [searchText, isBackendPagination]);
+    const [confirmState, setConfirmState] = useState<{
+        type: "delete" | "approve";
+        row: T | null;
+    } | null>(null);
 
-  // --------------- Paginated data ----------------
-  const displayData = useMemo(() => {
-    if (isBackendPagination) {
-      // backend: assume sortedData already represents the current page
-      return sortedData;
-    }
-    if (pageSize <= 0) return sortedData;
+    const handleConfirm = () => {
+        if (!confirmState || !confirmState.row) return;
 
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return sortedData.slice(startIndex, endIndex);
-  }, [sortedData, isBackendPagination, currentPage, pageSize]);
+        const { type, row } = confirmState;
 
-  const handleSort = (key: StringKeyOf<T>) => {
-    if (!sortable) return;
-    setSortConfig((prev) =>
-      prev.key === key
-        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
-        : { key, direction: "asc" }
+        if (type === "delete" && onDelete) {
+            onDelete(row);
+        } else if (type === "approve" && onApprove) {
+            onApprove(row);
+        }
+
+        setConfirmState(null);
+    };
+
+    const filteredData = useMemo(() => {
+        if (!searchText.trim()) return data;
+
+        const lowerSearch = searchText.toLowerCase();
+
+        return data.filter((row) =>
+            Object.values(row).some((value) => {
+                if (value == null) return false;
+
+                if (typeof value === "string") {
+                    return value.toLowerCase().includes(lowerSearch);
+                }
+
+                if (typeof value === "number") {
+                    return value.toString().includes(lowerSearch);
+                }
+
+                return false;
+            }),
+        );
+    }, [data, searchText]);
+
+    const sortedData = useMemo(() => {
+        if (!sortable || !sortConfig.key) return filteredData;
+        return [...filteredData].sort((a, b) => {
+            const aVal = a[sortConfig.key!];
+            const bVal = b[sortConfig.key!];
+            if (typeof aVal === "string" && typeof bVal === "string") {
+                return sortConfig.direction === "asc"
+                    ? aVal.localeCompare(bVal)
+                    : bVal.localeCompare(aVal);
+            }
+            if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+            if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+            return 0;
+        });
+    }, [filteredData, sortConfig, sortable]);
+
+    const currentPageNumber = page ?? currentPage;
+    const perPage = isBackend ? (itemsPerPage ?? 10) : pageSize;
+    const totalPages = totalItems
+        ? Math.ceil(totalItems / perPage)
+        : Math.ceil(sortedData.length / perPage);
+
+    const paginatedData = useMemo(() => {
+        if (isBackend) return data; // backend already slices
+        const start = (currentPage - 1) * perPage;
+        return sortedData.slice(start, start + perPage);
+    }, [data, sortedData, currentPage, perPage, isBackend]);
+
+    const handleSort = (key: StringKeyOf<T>) => {
+        if (!sortable) return;
+        setSortConfig((prev) =>
+            prev.key === key
+                ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+                : { key, direction: "asc" },
+        );
+    };
+
+    const handleSearchChange = (text: string) => {
+        setSearchText(text);
+        setCurrentPage(1);
+
+        // if (onSearchChange) onSearchChange(text);
+    };
+    useEffect(() => {
+        if (onSearchChange) onSearchChange(debouncedSearch);
+    }, [debouncedSearch]);
+
+    const handlePageSizeChange = (size: number) => {
+        if (isBackend) {
+            onItemsPerPageChange?.(size); // let parent fetch new data
+        } else {
+            setPageSize(size); // frontend: update local state
+            setCurrentPage(1);
+        }
+    };
+    const currentRowIds = useMemo(
+        () => paginatedData.map((row) => row.id),
+        [paginatedData],
     );
-  };
 
-  const renderSortIcon = (key: StringKeyOf<T>) => {
-    if (!sortable || sortConfig.key !== key) return null;
-    return sortConfig.direction === "asc" ? (
-      <FiChevronUp className="inline ml-1 w-4 h-4" />
-    ) : (
-      <FiChevronDown className="inline ml-1 w-4 h-4" />
-    );
-  };
+    const isAllCurrentSelected =
+        currentRowIds.length > 0 &&
+        currentRowIds.every((id) => selectedRowIds.includes(id));
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || (totalPages && newPage > totalPages)) return;
-    if (isBackendPagination) {
-      onPageChange?.(newPage);
-    } else {
-      setInternalPage(newPage);
-    }
-  };
+    const toggleSelectAllCurrent = () => {
+        if (!onSelectionChange) return;
 
-  const handleLimitChange = (newLimit: number) => {
-    setInternalLimit(newLimit);
-    if (isBackendPagination) {
-      onLimitChange?.(newLimit);
-      // usually when page size changes, go back to page 1
-      onPageChange?.(1);
-    } else {
-      setInternalPage(1);
-    }
-  };
+        if (isAllCurrentSelected) {
+            // remove only current page rows
+            onSelectionChange(
+                selectedRowIds.filter((id) => !currentRowIds.includes(id)),
+            );
+        } else {
+            // add current page rows
+            onSelectionChange([
+                ...new Set([...selectedRowIds, ...currentRowIds]),
+            ]);
+        }
+    };
 
-  const getSN = (index: number) => (currentPage - 1) * pageSize + index + 1;
+    const toggleRowSelection = (id: T["id"]) => {
+        if (!onSelectionChange) return;
 
-  const fromItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const toItem =
-    totalItems === 0 ? 0 : Math.min(currentPage * pageSize, totalItems);
+        onSelectionChange(
+            selectedRowIds.includes(id)
+                ? selectedRowIds.filter((x) => x !== id)
+                : [...selectedRowIds, id],
+        );
+    };
 
-  const sizeClassMap = {
-    16: "text-base w-4 h-4 p-1",
-    20: "text-lg w-5 h-5 p-1.5",
-    24: "text-xl w-6 h-6 p-2",
-    28: "text-2xl w-7 h-7 p-2",
-  };
-
-  const renderActions = (row: T, size: keyof typeof sizeClassMap = 16) => {
-    const btnClass = sizeClassMap[size] || sizeClassMap[16];
-    return (
-      <div className="flex gap-2 items-center">
-        {onApprove && (
-          <button
-            onClick={() => setConfirmState({ type: "approve", row })}
-            className={`text-green-600 rounded hover:bg-green-100 transition ${btnClass}`}
-            title="Approve"
-          >
-            <FiCheckCircle />
-          </button>
-        )}
-        {onEdit && (
-          <button
-            onClick={() => onEdit(row)}
-            className={`text-blue-600 rounded hover:bg-blue-100 transition ${btnClass}`}
-            title="Edit"
-          >
-            <FiEdit />
-          </button>
-        )}
-        {onDelete && (
-          <button
-            onClick={() => setConfirmState({ type: "delete", row })}
-            className={`text-red-600 rounded hover:bg-red-100 transition ${btnClass}`}
-            title="Delete"
-          >
-            <FiTrash2 />
-          </button>
-        )}
-        {onNavigate && (
-          <button
-            onClick={() => onNavigate(row)}
-            className={`text-purple-600 rounded hover:bg-purple-100 transition ${btnClass}`}
-            title="Navigate"
-          >
-            <FiNavigation2 />
-          </button>
-        )}
-        {onView && (
-          <button
-            onClick={() => onView(row)}
-            className={`text-indigo-600 rounded hover:bg-indigo-100 transition ${btnClass}`}
-            title="View"
-          >
-            <FiEye />
-          </button>
-        )}
-        {onReject && (
-          <button
-            onClick={() => onReject(row)}
-            className={`text-red-600 rounded hover:bg-indigo-100 transition ${btnClass}`}
-            title="Reject"
-          >
-            <ImCross />
-          </button>
-        )}
-        {onPermission && (
-          <button
-            onClick={() => onPermission(row)}
-            className={`text-green-600 rounded hover:bg-green-100 transition ${btnClass}`}
-            title="Permission"
-          >
-            <FaShieldAlt />
-          </button>
-        )}
-      </div>
-    );
-  };
-
-  const renderFooter = () => {
-    // Show footer even if only one page, so user can adjust page size
-    return (
-      <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-gray-700">Rows per page:</span>
-          <select
-            className="border rounded px-2 py-1 text-sm bg-white"
-            value={pageSize}
-            onChange={(e) => handleLimitChange(Number(e.target.value))}
-          >
-            {pageSizeOptionsFinal.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-          <span className="text-gray-500">
-            {fromItem}-{toItem} of {totalItems}
-          </span>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="flex items-center gap-2">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => handlePageChange(currentPage - 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50 text-sm"
-            >
-              Prev
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => handlePageChange(p)}
-                className={`px-3 py-1 border rounded text-sm ${
-                  p === currentPage ? "bg-gray-200 font-semibold" : ""
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50 text-sm"
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ---------------- MOBILE RENDER ----------------
-  if (isMobile) {
-    return (
-      <div className={className}>
-        {searchable && (
-          <Input
-            className="px-3 py-2 border rounded w-full max-w-md"
-            name="search"
-            type="search"
-            placeholder="Search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        )}
-        {displayData.length === 0 ? (
-          <div className="text-center text-gray-400 italic py-8">
-            {emptyText}
-          </div>
+    const renderSortIcon = (key: StringKeyOf<T>) => {
+        if (!sortable || sortConfig.key !== key) return null;
+        return sortConfig.direction === "asc" ? (
+            <FiChevronUp className="inline ml-1 w-4 h-4" />
         ) : (
-          displayData.map((row, index) => (
-            <div
-              key={row.id}
-              className={`${COLORS.primary} rounded-lg p-2 shadow-md space-y-2 mb-4`}
-            >
-              {snRequired && (
-                <div className="text-sm font-semibold text-white p-2 shadow-md rounded-lg">
-                  SN: {getSN(index)}
-                </div>
-              )}
-              <div className="bg-white p-2 shadow-md rounded-lg flex flex-col gap-1">
-                {columns.map((col, colIndex) => {
-                  const rawValue =
-                    typeof col.accessor === "function"
-                      ? col.accessor(row, colIndex)
-                      : (row[col.accessor] as unknown as React.ReactNode);
-                  const value = React.isValidElement(rawValue)
-                    ? rawValue
-                    : typeof rawValue === "object" && rawValue !== null
-                    ? JSON.stringify(rawValue)
-                    : rawValue;
-                  return (
-                    <div
-                      key={colIndex}
-                      className="text-sm flex justify-between"
+            <FiChevronDown className="inline ml-1 w-4 h-4" />
+        );
+    };
+
+    const sizeClassMap = {
+        16: "text-base w-4 h-4 p-1",
+        20: "text-lg w-5 h-5 p-1.5",
+        24: "text-xl w-6 h-6 p-2",
+        28: "text-2xl w-7 h-7 p-2",
+    };
+
+    // const renderActions = (row: T, size: keyof typeof sizeClassMap = 16) => {
+    const renderActions = (
+        row: T,
+        index: number,
+        size: keyof typeof sizeClassMap = 16,
+    ) => {
+        const btnClass = sizeClassMap[size] || sizeClassMap[16];
+        const canShowEdit = !showEditButton || showEditButton(index) === true;
+        return (
+            <div className="flex gap-2 items-center">
+                {onApprove && (
+                    <button
+                        onClick={() => setConfirmState({ type: "approve", row })}
+                        className={`text-green-600 rounded hover:bg-green-100 transition ${btnClass}`}
+                        title="Approve"
                     >
-                      <span className="font-bold text-gray-600">
-                        {col.header}:
-                      </span>
-                      <span className="text-gray-800">{value}</span>
-                    </div>
-                  );
-                })}
-                <div className="mt-6 mb-3 flex gap-2 justify-end">
-                  {renderActions(row, 24)}
-                </div>
-              </div>
+                        <FiCheckCircle />
+                    </button>
+                )}
+                {onEdit && canShowEdit && (
+                    <button
+                        onClick={() => onEdit(row)}
+                        className={`text-blue-600 rounded hover:bg-blue-100  transition ${btnClass}`}
+                        title="Edit"
+                    >
+                        <FiEdit />
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={() => setConfirmState({ type: "delete", row })}
+                        className={`text-red-600 rounded hover:bg-red-100 transition ${btnClass}`}
+                        title="Delete"
+                    >
+                        <FiTrash2 />
+                    </button>
+                )}
+                {onView && (
+                    <button
+                        onClick={() => onView(row)}
+                        className={`text-indigo-600 rounded hover:bg-indigo-100 transition ${btnClass}`}
+                        title="View"
+                    >
+                        <FiEye />
+                    </button>
+                )}
+                {onPermission && (
+                    <button
+                        onClick={() => onPermission(row)}
+                        className={`text-green-600 rounded hover:bg-green-100 transition ${btnClass}`}
+                        title="Permission"
+                    >
+                        <FaShieldAlt />
+                    </button>
+                )}
+                {/* Expand/Collapse toggle */}
+                {columns.some((col) => col.expandable) && (
+                    <button
+                        onClick={() => toggleRow(row.id)}
+                        className={`text-gray-600 rounded hover:bg-gray-100 transition ${btnClass}`}
+                        title={expandedRowId === row.id ? "Collapse" : "Expand"}
+                    >
+                        {expandedRowId === row.id ? "▲" : "▼"}
+                    </button>
+                )}
             </div>
-          ))
-        )}
-        {renderFooter()}
-        <ConfirmModal
-          open={!!confirmState}
-          onClose={() => setConfirmState(null)}
-          onConfirm={handleConfirm}
-          confirmText={confirmState?.type === "delete" ? "Delete" : "Approve"}
-          title={
-            confirmState?.type === "delete"
-              ? "Confirm Deletion"
-              : "Confirm Approval"
-          }
-          description={
-            confirmState?.row ? (
-              <>
-                Are you sure you want to <strong>{confirmState.type}</strong>{" "}
-                <span className="text-blue-600">
+        );
+    };
+
+    // const generatePageNumbers = (): (number | "...")[] => {
+    //   if (totalPages <= 7)
+    //     return Array.from({ length: totalPages }, (_, i) => i + 1);
+    //   const pages: (number | "...")[] = [1, 2];
+    //   if (currentPage > 5) pages.push("...");
+    //   for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+    //     if (i > 2 && i < totalPages - 1) pages.push(i);
+    //   }
+    //   if (currentPage < totalPages - 3) pages.push("...");
+    //   pages.push(totalPages - 1, totalPages);
+    //   return [...new Set(pages)];
+    // };
+
+    const getPaginationRange = (
+        current: number,
+        total: number,
+        delta = 2,
+    ): (number | "...")[] => {
+        const range: number[] = [];
+        const rangeWithDots: (number | "...")[] = [];
+
+        const left = Math.max(2, current - delta);
+        const right = Math.min(total - 1, current + delta);
+
+        for (let i = left; i <= right; i++) {
+            range.push(i);
+        }
+
+        if (left > 2) rangeWithDots.push("...");
+        rangeWithDots.push(...range);
+        if (right < total - 1) rangeWithDots.push("...");
+
+        return [1, ...rangeWithDots, total];
+    };
+
+    const handlePageChange = (pageNum: number) => {
+        if (onPageChange) {
+            onPageChange(pageNum); // backend: let parent fetch new data
+        } else {
+            setCurrentPage(pageNum); // frontend: use local state
+        }
+    };
+
+    const renderPagination = () =>
+        totalPages > 1 && (
+            <div className="flex flex-col items-center gap-3 py-4">
+                {/* Page info */}
+                <div className="text-xs text-gray-500">
+                    Page <span className="font-semibold">{currentPageNumber}</span> of{" "}
+                    <span className="font-semibold">{totalPages}</span>
+                </div>
+
+                {/* Controls */}
+                <div className="flex flex-wrap items-center gap-1">
+                    {/* First */}
+                    <button
+                        disabled={currentPageNumber === 1}
+                        onClick={() => handlePageChange(1)}
+                        className={`px-2 py-1 text-sm rounded border transition
+            ${
+                            currentPageNumber === 1
+                                ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                                : "hover:bg-gray-100"
+                        }`}
+                    >
+                        ⏮
+                    </button>
+
+                    {/* Prev */}
+                    <button
+                        disabled={currentPageNumber === 1}
+                        onClick={() => handlePageChange(currentPageNumber - 1)}
+                        className={`px-2 py-1 text-sm rounded border transition
+            ${
+                            currentPageNumber === 1
+                                ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                                : "hover:bg-gray-100"
+                        }`}
+                    >
+                        ‹
+                    </button>
+
+                    {/* Page numbers */}
+                    {getPaginationRange(currentPageNumber, totalPages).map((p, idx) =>
+                            p === "..." ? (
+                                <span
+                                    key={idx}
+                                    className="px-2 py-1 text-sm text-gray-400 select-none"
+                                >
+                …
+              </span>
+                            ) : (
+                                <button
+                                    key={idx}
+                                    onClick={() => handlePageChange(p)}
+                                    className={`px-3 py-1 text-sm rounded border transition
+                ${
+                                        p === currentPageNumber
+                                            ? "bg-blue-600 text-white border-blue-600 shadow"
+                                            : "hover:bg-gray-100 text-gray-700 border-gray-300"
+                                    }`}
+                                >
+                                    {p}
+                                </button>
+                            ),
+                    )}
+
+                    {/* Next */}
+                    <button
+                        disabled={currentPageNumber === totalPages}
+                        onClick={() => handlePageChange(currentPageNumber + 1)}
+                        className={`px-2 py-1 text-sm rounded border transition
+            ${
+                            currentPageNumber === totalPages
+                                ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                                : "hover:bg-gray-100"
+                        }`}
+                    >
+                        ›
+                    </button>
+
+                    {/* Last */}
+                    <button
+                        disabled={currentPageNumber === totalPages}
+                        onClick={() => handlePageChange(totalPages)}
+                        className={`px-2 py-1 text-sm rounded border transition
+            ${
+                            currentPageNumber === totalPages
+                                ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                                : "hover:bg-gray-100"
+                        }`}
+                    >
+                        ⏭
+                    </button>
+
+                    {/* Jump to page */}
+                    <div className="flex items-center gap-1 ml-3">
+                        <span className="text-xs text-gray-500">Go to</span>
+                        <input
+                            type="number"
+                            min={1}
+                            max={totalPages}
+                            value={jumpPage}
+                            onChange={(e) => setJumpPage(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    const pageNum = Number(jumpPage);
+                                    if (pageNum >= 1 && pageNum <= totalPages) {
+                                        handlePageChange(pageNum);
+                                        setJumpPage("");
+                                    }
+                                }
+                            }}
+                            className="w-16 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+
+    const getSN = (index: number) =>
+        isBackend
+            ? (currentPageNumber - 1) * (itemsPerPage ?? 10) + index + 1
+            : (currentPage - 1) * pageSize + index + 1;
+
+    if (isMobile) {
+        const firstColumn = columns[0];
+        const remainingColumns = columns.slice(1);
+
+        const renderCellValue = (value: unknown): React.ReactNode => {
+            if (React.isValidElement(value)) return value;
+            if (
+                typeof value === "string" ||
+                typeof value === "number" ||
+                typeof value === "boolean"
+            )
+                return value;
+            if (value === null || value === undefined) return "—";
+            if (typeof value === "object") return JSON.stringify(value);
+            return String(value);
+        };
+
+        return (
+            <div className={`overflow-x-auto ${className}`}>
+                <div className={"flex justify-between"}>
+                    {/* Search */}
+                    {searchable && (
+                        <Input
+                            className="px-4 py-2 border rounded-md w-full mb-4 shadow-sm"
+                            name="search"
+                            type="search"
+                            placeholder="Search"
+                            value={searchText}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                        />
+                    )}
+                    {showPageSize && (
+                        <div className={"mt-1 py-1 border mb-8 px-2 rounded-md "}>
+                            <label className="mr-2">Page size:</label>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                className="border-0 rounded px-2 py-1"
+                            >
+                                {[5, 10, 20, 50, 100].map((size) => (
+                                    <option key={size} value={size}>
+                                        {size}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                </div>
+
+                <table className="min-w-full rounded-xl overflow-hidden shadow-md border border-gray-300">
+                    {/* Header */}
+                    <thead className={`${COLORS.primary} text-white`}>
+                    <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">
+                            <div className="flex items-center gap-2">
+                                {selectable && (
+                                    <input
+                                        type="checkbox"
+                                        checked={isAllCurrentSelected}
+                                        onChange={toggleSelectAllCurrent}
+                                    />
+                                )}
+                                SN
+                            </div>
+                        </th>
+
+                        <th className="px-4 py-3 text-left text-xs font-semibold border-r border-gray-700">
+                            {firstColumn.header}
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold">
+                            Details
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tbody className="bg-white">
+                    {paginatedData.map((row, index) => {
+                        const firstValue =
+                            typeof firstColumn.accessor === "function"
+                                ? firstColumn.accessor(row, index)
+                                : isStringKeyOf(firstColumn.accessor)
+                                    ? row[firstColumn.accessor]
+                                    : null;
+
+                        const isExpanded = expandedRowId === row.id;
+
+                        return (
+                            <React.Fragment key={row.id}>
+                                {/* Main Row */}
+                                <tr className="border-b last:border-b-0 hover:bg-gray-50 transition">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700">
+                                        <div className="flex items-center gap-2">
+                                            {selectable && (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedRowIds.includes(row.id)}
+                                                    onChange={() => toggleRowSelection(row.id)}
+                                                />
+                                            )}
+                                            {getSN(index)}
+                                        </div>
+                                    </td>
+
+
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-800 border-r">
+                                        {renderCellValue(firstValue)}
+                                    </td>
+
+                                    <td className="px-4 py-3 text-center">
+                                        <button
+                                            onClick={() => toggleRow(row.id)}
+                                            className={`inline-flex items-center justify-center
+                        w-8 h-8 rounded-full
+                        ${COLORS.secondary} text-gray-900
+                        shadow-sm hover:opacity-90 transition`}
+                                            aria-label="Toggle details"
+                                        >
+                                            {isExpanded ? "−" : "+"}
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                {/* Expanded Row */}
+                                {isExpanded && (
+                                    <tr>
+                                        <td colSpan={3} className="px-4 py-4 bg-gray-50">
+                                            <div className="bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+                                                <div className="divide-y divide-gray-200">
+                                                    {remainingColumns.map((col, i) => {
+                                                        const value =
+                                                            typeof col.accessor === "function"
+                                                                ? col.accessor(row, index)
+                                                                : isStringKeyOf(col.accessor)
+                                                                    ? row[col.accessor]
+                                                                    : null;
+
+                                                        return (
+                                                            <div
+                                                                key={i}
+                                                                className="grid grid-cols-2 items-start"
+                                                            >
+                                                                <div className="px-4 py-3 text-xs font-semibold text-gray-500 bg-gray-100 border-r">
+                                                                    {col.header}
+                                                                </div>
+                                                                <div className="px-4 py-3 text-sm text-gray-800 break-words">
+                                                                    {renderCellValue(value)}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {/* Actions */}
+                                                    {(onEdit || onDelete || onView || onApprove) && (
+                                                        <div className="grid grid-cols-2 items-center bg-gray-100">
+                                                            <div className="px-4 py-3 text-xs font-semibold text-gray-500 border-r">
+                                                                Actions
+                                                            </div>
+                                                            <div className="px-4 py-3">
+                                                                {renderActions(row, index, 20)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
+                    </tbody>
+                </table>
+
+                {pagination && renderPagination()}
+                <ConfirmModal
+                    open={!!confirmState}
+                    onClose={() => setConfirmState(null)}
+                    onConfirm={handleConfirm}
+                    confirmText={confirmState?.type === "delete" ? "Delete" : "Approve"}
+                    title={
+                        confirmState?.type === "delete"
+                            ? "Confirm Deletion"
+                            : "Confirm Approval"
+                    }
+                    description={
+                        confirmState?.row ? (
+                            <>
+                                Are you sure you want to <strong>{confirmState.type}</strong>{" "}
+                                <span className="text-blue-600">
                   {(confirmState.row as any)?.name ?? "this item"}
                 </span>
-                ?
-              </>
-            ) : null
-          }
-          actionType={confirmState?.type === "delete" ? "delete" : "approve"}
-        />
-      </div>
-    );
-  }
+                                ?
+                            </>
+                        ) : null
+                    }
+                    actionType={confirmState?.type === "delete" ? "delete" : "approve"}
+                />
+            </div>
+        );
+    }
 
-  // ---------------- DESKTOP RENDER ----------------
-  return (
-    <div
-      className={`overflow-x-auto border border-gray-300 rounded-lg shadow-sm bg-white ${className}`}
-    >
-      {searchable && (
-        <div className="p-2">
-          <Input
-            placeholder="Search"
-            required
-            className="border rounded w-full max-w-md mb-0"
-            name="search"
-            type="search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        </div>
-      )}
-      <table className="min-w-full table-auto divide-y divide-gray-200">
-        {headerRequired && (
-          <thead className={`${COLORS.primary} text-white`}>
-            <tr>
-              {snRequired && (
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  SN
-                </th>
-              )}
-              {columns.map((col, i) => {
-                const isSortableCol =
-                  sortable && isStringKeyOf<T>(col.accessor);
-                return (
-                  <th
-                    key={i}
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                      col.className || ""
-                    } ${isSortableCol ? "cursor-pointer select-none" : ""}`}
-                    onClick={() => {
-                      if (isSortableCol && isStringKeyOf<T>(col.accessor)) {
-                        handleSort(col.accessor);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center">
-                      {col.header}
-                      {isSortableCol &&
-                        isStringKeyOf<T>(col.accessor) &&
-                        renderSortIcon(col.accessor)}
+    return (
+        <div
+            className={`overflow-x-auto border border-gray-300 rounded-lg shadow-sm ${className}`}
+        >
+            <div className="flex justify-between items-center p-2">
+                {searchable ?(
+                    // <div className="p-2">
+                    <Input
+                        placeholder="Search"
+                        required
+                        className="border rounded w-full max-w-md mb-0"
+                        name="search"
+                        type="search"
+                        value={searchText}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                    />
+                ) : (
+                    // </div>
+                    <div></div>
+                )}
+                {showPageSize && (
+                    <div>
+                        <label className="mr-2">Page size:</label>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                            className="border rounded px-2 py-1"
+                        >
+                            {[5, 10, 20, 50, 100].map((size) => (
+                                <option key={size} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                  </th>
-                );
-              })}
-              {(onEdit ||
-                onDelete ||
-                onView ||
-                onApprove ||
-                onNavigate ||
-                onReject ||
-                onPermission) && (
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Actions
-                </th>
-              )}
-            </tr>
-          </thead>
-        )}
-        <tbody className="bg-white divide-y divide-gray-200">
-          {displayData.length === 0 ? (
-            <tr>
-              <td
-                colSpan={
-                  columns.length +
-                  (snRequired ? 1 : 0) +
-                  (onEdit ||
-                  onDelete ||
-                  onView ||
-                  onApprove ||
-                  onNavigate ||
-                  onReject ||
-                  onPermission
-                    ? 1
-                    : 0)
-                }
-                className="px-6 py-12 text-center text-gray-400 italic"
-              >
-                {emptyText}
-              </td>
-            </tr>
-          ) : (
-            displayData.map((row, index) => (
-              <tr
-                key={row.id}
-                className="hover:bg-gray-50 transition-colors duration-150"
-              >
-                {snRequired && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {getSN(index)}
-                  </td>
                 )}
-                {columns.map((col, i) => {
-                  const rawValue =
-                    typeof col.accessor === "function"
-                      ? col.accessor(row, i)
-                      : (row[col.accessor] as unknown as React.ReactNode);
-                  const value = React.isValidElement(rawValue)
-                    ? rawValue
-                    : typeof rawValue === "object" && rawValue !== null
-                    ? JSON.stringify(rawValue)
-                    : rawValue;
-                  return (
-                    <td
-                      key={i}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
-                    >
-                      {value}
-                    </td>
-                  );
-                })}
-                {(onEdit ||
-                  onDelete ||
-                  onView ||
-                  onApprove ||
-                  onNavigate ||
-                  onReject ||
-                  onPermission) && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {renderActions(row)}
-                  </td>
-                )}
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      {renderFooter()}
+                {/*{filters && filters.length > 0 && (*/}
+                {/*    <select*/}
+                {/*        value={selectedFilter ?? ""}*/}
+                {/*        onChange={(e) => onFilterChange?.(e.target.value)}*/}
+                {/*        className="border rounded px-3 py-2 text-sm"*/}
+                {/*    >*/}
+                {/*        <option value="">All</option>*/}
+                {/*        {filters.map((filter) => (*/}
+                {/*            <option key={filter.value} value={filter.value}>*/}
+                {/*                {filter.label}*/}
+                {/*            </option>*/}
+                {/*        ))}*/}
+                {/*    </select>*/}
+                {/*)}*/}
+            </div>
+            <table className="min-w-full border rounded-2xl table-auto divide-y divide-gray-200">
+                <thead className={`bg-white text-black border-b-4 shadow-2xl`}>
+                <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold">
+                        <div className="flex items-center gap-2">
+                            {selectable && (
+                                <input
+                                    type="checkbox"
+                                    checked={isAllCurrentSelected}
+                                    onChange={toggleSelectAllCurrent}
+                                />
+                            )}
+                            SN
+                        </div>
+                    </th>
+                    {columns.map((col, i) => {
+                        const isSortableCol = sortable && isStringKeyOf<T>(col.accessor);
+                        return (
+                            <th
+                                key={i}
+                                className={`px-6 py-3 text-left text-sm font-semibold tracking-wider ${
+                                    col.className || ""
+                                } ${isSortableCol ? "cursor-pointer select-none" : ""}`}
+                                onClick={() => {
+                                    if (isSortableCol && isStringKeyOf<T>(col.accessor)) {
+                                        handleSort(col.accessor);
+                                    }
+                                }}
+                            >
+                                <div className="flex items-center text-sm">
+                                    {col.header}
+                                    {isSortableCol &&
+                                        isStringKeyOf<T>(col.accessor) &&
+                                        renderSortIcon(col.accessor)}
+                                </div>
+                            </th>
+                        );
+                    })}
+                    {(onEdit || onDelete || onView || onApprove) && (
+                        <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider">
+                            Actions
+                        </th>
+                    )}
+                </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedData.length === 0 ? (
+                    <tr>
+                        <td
+                            colSpan={columns.length + (selectable ? 1 : 0) + ((onEdit || onDelete || onView || onApprove || columns.some((col) => col.expandable)) ? 1 : 0)}
+                            className="px-6 py-8 text-center text-gray-400 italic"
+                        >
+                            {emptyText }
+                        </td>
+                    </tr>
+                ) : (
+                    paginatedData.map((row, index) => (
+                        <React.Fragment key={row.id}>
+                            <tr
+                                className={`transition-colors duration-150 ${
+                                    index % 2 === 0 ? "bg-[#F2F8FA]" : "bg-white"
+                                } hover:bg-gray-50`}
+                            >
+                                {" "}
+                                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700">
+                                    <div className="flex items-center gap-2">
+                                        {selectable && (
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedRowIds.includes(row.id)}
+                                                onChange={() => toggleRowSelection(row.id)}
+                                            />
+                                        )}
+                                        {getSN(index)}
+                                    </div>
+                                </td>
+                                {columns.map((col, i) => {
+                                    const rawValue =
+                                        typeof col.accessor === "function"
+                                            ? col.accessor(row, i)
+                                            : isStringKeyOf<T>(col.accessor)
+                                                ? row[col.accessor]
+                                                : "-";
 
-      <ConfirmModal
-        open={!!confirmState}
-        onClose={() => setConfirmState(null)}
-        onConfirm={handleConfirm}
-        confirmText={confirmState?.type === "delete" ? "Delete" : "Approve"}
-        title={
-          confirmState?.type === "delete"
-            ? "Confirm Deletion"
-            : "Confirm Approval"
-        }
-        description={
-          confirmState?.row ? (
-            <>
-              Are you sure you want to <strong>{confirmState.type}</strong>{" "}
-              <span className="text-blue-600">
+                                    // const value =
+                                    //   React.isValidElement(rawValue)
+                                    //     ? rawValue
+                                    //     : typeof rawValue === "object" && rawValue !== null
+                                    //     ? JSON.stringify(rawValue)
+                                    //     : rawValue;
+                                    return (
+                                        <td
+                                            key={i}
+                                            className="px-6 py-4 whitespace-nowrap text-xs text-gray-700"
+                                            title={
+                                                typeof rawValue === "string" ? rawValue : undefined
+                                            }
+                                        >
+                                            {typeof rawValue === "function"
+                                                ? rawValue(row, i)
+                                                : React.isValidElement(rawValue)
+                                                    ? rawValue
+                                                    : typeof rawValue === "object" && rawValue !== null
+                                                        ? JSON.stringify(rawValue)
+                                                        : (rawValue ?? "-")}
+                                        </td>
+                                    );
+                                })}
+                                {(onEdit ||
+                                    onDelete ||
+                                    onView ||
+                                    onApprove ||
+                                    columns.some((col) => col.expandable)) && (
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700">
+                                        {renderActions(row, index)}
+                                    </td>
+                                )}
+                            </tr>
+
+                            {/* Expandable content row */}
+                            {expandedRowId === row.id && (
+                                <tr className="bg-gray-50">
+                                    <td colSpan={columns.length + 2} className="px-6 py-4">
+                                        {columns.map((col, i) =>
+                                            col.expandable ? (
+                                                <div key={i} className="mb-2">
+                                                    {col.expandable(row)}
+                                                </div>
+                                            ) : null,
+                                        )}
+                                    </td>
+                                </tr>
+                            )}
+                        </React.Fragment>
+                    ))
+                )}
+                </tbody>
+            </table>
+            {pagination && renderPagination()}
+
+            <ConfirmModal
+                open={!!confirmState}
+                onClose={() => setConfirmState(null)}
+                onConfirm={handleConfirm}
+                confirmText={confirmState?.type === "delete" ? "Delete" : "Approve"}
+                title={
+                    confirmState?.type === "delete"
+                        ? "Confirm Deletion"
+                        : "Confirm Approval"
+                }
+                description={
+                    confirmState?.row ? (
+                        <>
+                            Are you sure you want to <strong>{confirmState.type}</strong>{" "}
+                            <span className="text-blue-600">
                 {(confirmState.row as any)?.name ?? "this item"}
               </span>
-              ?
-            </>
-          ) : null
-        }
-        actionType={confirmState?.type === "delete" ? "delete" : "approve"}
-      />
-    </div>
-  );
+                            ?
+                        </>
+                    ) : null
+                }
+                actionType={confirmState?.type === "delete" ? "delete" : "approve"}
+            />
+        </div>
+    );
 }
 
 export default Table;

@@ -60,10 +60,12 @@ const DoctorTable = ({ departmentId }: Props) => {
 
     /* Carousel state */
     const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
+    const [activeDoctorId, setActiveDoctorId] = useState<number | null>(null);
+
 
     const { data, refetch } = useGetDoctor(departmentId);
     const doctors: Doctor[] = data?.data || [];
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const addDoctor = useAddDoctor();
     const updateDoctor = useUpdateDoctor(selectedDoctor?.id);
@@ -79,20 +81,20 @@ const DoctorTable = ({ departmentId }: Props) => {
     });
 
     /* Track active carousel slide */
-    useEffect(() => {
-        if (!carouselApi) return;
-
-        const onSelect = () => {
-            setActiveIndex(carouselApi.selectedScrollSnap());
-        };
-
-        onSelect();
-        carouselApi.on("select", onSelect);
-
-        return () => {
-            carouselApi.off("select", onSelect);
-        }
-    }, [carouselApi]);
+    // useEffect(() => {
+    //     if (!carouselApi) return;
+    //
+    //     const onSelect = () => {
+    //         setActiveIndex(carouselApi.selectedScrollSnap());
+    //     };
+    //
+    //     onSelect();
+    //     carouselApi.on("select", onSelect);
+    //
+    //     return () => {
+    //         carouselApi.off("select", onSelect);
+    //     }
+    // }, [carouselApi]);
 
     /* Reset when department or selected doctor changes */
     useEffect(() => {
@@ -102,8 +104,22 @@ const DoctorTable = ({ departmentId }: Props) => {
             phone: selectedDoctor?.phone || "",
             email: selectedDoctor?.email || "",
         });
-        setActiveIndex(0);
+        // setActiveIndex(0);
     }, [departmentId, selectedDoctor, form]);
+    useEffect(() => {
+        if (!doctors.length) return;
+
+        const firstDoctor = doctors[0];
+
+        setActiveDoctorId(firstDoctor.id);
+        setActiveIndex(0);
+
+        // scroll after carousel is ready
+        requestAnimationFrame(() => {
+            carouselApi?.scrollTo(0);
+        });
+    }, [departmentId, doctors, carouselApi]);
+
 
     /* ================= HANDLERS ================= */
 
@@ -164,22 +180,38 @@ const DoctorTable = ({ departmentId }: Props) => {
                     >
                         <CarouselContent className="-ml-4">
                             {doctors.map((doctor, index) => (
-                                <CarouselItem key={doctor.id} className="pl-4 basis-1/2 md:basis-1/3">
+                                <CarouselItem
+                                    key={doctor.id}
+                                    className="pl-4 basis-1/2 md:basis-1/3"
+                                >
                                     <div
+                                        onClick={() => {
+                                            setActiveDoctorId(doctor.id);
+                                            carouselApi?.scrollTo(index);
+                                            setActiveIndex(index)
+                                        }}
                                         className={cn(
-                                            "group relative flex flex-col justify-between h-full min-h-[160px] rounded-xl border p-5 transition-all duration-300",
-                                            index === activeIndex
+                                            "group relative flex flex-col justify-between h-full min-h-[160px] rounded-xl border p-5 transition-all duration-300 cursor-pointer",
+                                            // index === activeIndex,
+                                            activeDoctorId === doctor.id
                                                 ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg ring-2 ring-emerald-500/30 border-transparent scale-105"
                                                 : "bg-card hover:bg-accent/50 text-card-foreground border-border/40 hover:shadow-md hover:-translate-y-1"
                                         )}
                                     >
-                                        <div className="flex justify-between items-start">
+
+                                    <div className="flex justify-between items-start">
                                             <div className="flex items-center gap-3">
-                                                <div className={cn(
-                                                    "h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold shadow-inner",
-                                                    index === activeIndex ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                                                )}>
-                                                    <UserRound className="h-5 w-5" />
+                                                <div
+                                                    className={cn(
+                                                        "h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold shadow-inner",
+
+                                                        activeDoctorId === doctor.id
+                                                            ? "bg-white/20 text-white"
+                                                            : "bg-muted text-muted-foreground"
+                                                    )}
+                                                >
+
+                                                <UserRound className="h-5 w-5" />
                                                 </div>
                                                 <div className="flex flex-col">
                                                      <h3 className="text-base font-bold leading-none line-clamp-1">
@@ -193,7 +225,7 @@ const DoctorTable = ({ departmentId }: Props) => {
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className={cn(
                                                         "h-8 w-8 -mr-3 -mt-2 opacity-70 hover:opacity-100",
-                                                        index === activeIndex ? "text-white hover:bg-white/20" : "text-muted-foreground"
+                                                        activeDoctorId === doctor.id? "text-white hover:bg-white/20" : "text-muted-foreground"
                                                     )}>
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
@@ -231,11 +263,11 @@ const DoctorTable = ({ departmentId }: Props) => {
                                         </div>
 
                                         <div className="mt-4 space-y-2">
-                                            <div className={cn("flex items-center gap-2 text-xs", index === activeIndex ? "text-emerald-50" : "text-muted-foreground")}>
+                                            <div className={cn("flex items-center gap-2 text-xs", activeDoctorId === doctor.id? "text-emerald-50" : "text-muted-foreground")}>
                                                 <Mail className="h-3 w-3 opacity-70" />
                                                 <span className="truncate">{doctor.email}</span>
                                             </div>
-                                            <div className={cn("flex items-center gap-2 text-xs", index === activeIndex ? "text-emerald-50" : "text-muted-foreground")}>
+                                            <div className={cn("flex items-center gap-2 text-xs", activeDoctorId === doctor.id ? "text-emerald-50" : "text-muted-foreground")}>
                                                 <Phone className="h-3 w-3 opacity-70" />
                                                 <span className="truncate">{doctor.phone}</span>
                                             </div>
@@ -249,7 +281,7 @@ const DoctorTable = ({ departmentId }: Props) => {
                         <CarouselNext className="-right-10 h-8 w-8 border-none bg-card/50 hover:bg-card shadow-sm" />
 
                         <div className="mt-4 text-center text-sm text-muted-foreground">
-                            {activeIndex + 1} / {doctors.length}
+                            {activeIndex+1} / {doctors.length}
                         </div>
                     </Carousel>
                 </div>

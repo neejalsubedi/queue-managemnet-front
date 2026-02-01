@@ -8,6 +8,7 @@ export type Patient = {
     gender: "M" | "F";
     dob: string; // ideally YYYY-MM-DD
     age: number | null;
+
     address: string;
     blood_group: string;
     emergency_contact_name: string;

@@ -70,7 +70,7 @@ save.mutate(payload,{
     }
 })
     };
-
+console.log("apointid",selectedPatientId);
     const InfoRow = ({ label, value }: { label: string; value?: string | null }) => (
         <div className="space-y-1">
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -260,7 +260,22 @@ save.mutate(payload,{
                </Card>
 
            </div>
-           <PatientModal open={open} mode={"add"} onClose={()=>setOpen(false)} onSuccess={refetchPateient}/>
+           <PatientModal
+               open={open}
+               mode="add"
+               onClose={() => setOpen(false)}
+               onSuccess={(newPatientId) => {
+                   if (!newPatientId) return;
+
+                   // 1️⃣ Refetch patient list
+                   refetchPateient();
+
+                   // 2️⃣ Auto-select patient
+                   setSelectedPatientId(newPatientId);
+                   setValue("patient_id", newPatientId);
+               }}
+           />
+
        </>
     );
 };
