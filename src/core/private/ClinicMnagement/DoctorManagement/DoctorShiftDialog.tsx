@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import {
     Dialog,
     DialogContent,
@@ -70,7 +70,7 @@ const DAYS = [
     { id: 4, label: "Thursday" },
     { id: 5, label: "Friday" },
     { id: 6, label: "Saturday" },
-    { id: 7, label: "Sunday" },
+    { id: 7 , label: "Sunday" },
 ];
 
 /* ---------- COMPONENT ---------- */
@@ -95,21 +95,37 @@ const DoctorShiftDialog = ({
         doctor.department_id
     );
 
-    const savedShifts: ApiDoctorShift[] = data?.data ?? [];
+    const savedShifts = useMemo<ApiDoctorShift[]>(
+        () => data?.data ?? [],
+        [data?.data]
+    );
+
 
 
     const [days, setDays] = useState<DayShift[]>([]);
 
     /* ---------- INIT (WITH PREFILL) ---------- */
-
     useEffect(() => {
-        if (!savedShifts.length) return;
-
         const baseDays: DayShift[] = DAYS.map((d) => ({
             day_of_week: d.id,
             shifts: [],
         }));
 
+        if (savedShifts.length === 0) {
+            // 👇 No data → show one empty shift per day
+            baseDays.forEach((day) => {
+                day.shifts.push({
+                    start_time: "",
+                    end_time: "",
+                    is_day_off: false,
+                });
+            });
+
+            setDays(baseDays);
+            return;
+        }
+
+        // 👇 Prefill from API
         for (const day of baseDays) {
             const shiftsForDay = savedShifts.filter(
                 (s) => s.day_of_week === day.day_of_week
@@ -132,28 +148,45 @@ const DoctorShiftDialog = ({
             }
         }
 
-
         setDays(baseDays);
-    }, [savedShifts, doctor]);
+    }, [ doctor.id, doctor.department_id],doctor.name);
+
 
     /* ---------- HANDLERS ---------- */
 
     const toggleDayOff = (day: number) => {
         setDays((prev) =>
-            prev.map((d) =>
-                d.day_of_week === day
-                    ? {
+            prev.map((d) => {
+                if (d.day_of_week !== day) return d;
+
+                const isCurrentlyDayOff = d.shifts[0]?.is_day_off;
+
+                // 🔁 Reverse: Day Off → Working day
+                if (isCurrentlyDayOff) {
+                    return {
                         ...d,
                         shifts: [
                             {
                                 start_time: "",
                                 end_time: "",
-                                is_day_off: true,
+                                is_day_off: false,
                             },
                         ],
-                    }
-                    : d
-            )
+                    };
+                }
+
+                // 🚫 Working day → Day Off
+                return {
+                    ...d,
+                    shifts: [
+                        {
+                            start_time: "",
+                            end_time: "",
+                            is_day_off: true,
+                        },
+                    ],
+                };
+            })
         );
     };
 

@@ -102,6 +102,8 @@ APPOINTMENT:{
     NO_SHOWN:(id:number|undefined|string)=>`/api/appointments/no-show/${id}`,
     UPDATE:(id:number|undefined|string)=>`/api/appointments/update/${id}`,
     GET_HISTORY:`api/appointments/history`,
+    FOLLOW_UP:(id:number|undefined|string)=>`/api/appointments/follow-up/${id}`,
+    RESCHEDULE:(id:number|undefined|string)=>`/api/appointments/reschedule/${id}`,
 
 
     }

@@ -1,16 +1,20 @@
 import { useState, useMemo } from "react";
 import { FilterAccordion } from "@/components/ui/FilterAccordion";
 import AppointmentFilter from "@/core/private/AppointmentMangement/AppointmentFilter";
-import { useGetLiveAppointments } from "@/components/ApiCall/Api";
+import {
+
+    useGetLiveAppointments,
+
+} from "@/components/ApiCall/Api";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
     Card,
-    CardHeader,
-    CardTitle,
+
     CardContent,
 } from "@/components/ui/card";
-import {AppointmentStatusEnum, AppointmentTypeEnum} from "@/enums/AppointmentEnum.ts";
+import {AppointmentStatusEnum} from "@/enums/AppointmentEnum.ts";
+import AppointmentCard from "@/core/private/AppointmentMangement/AppointmentCard.tsx";
 
 /* ===== STATUS CONSTANT ===== */
 
@@ -64,12 +68,27 @@ const Appointment = () => {
         doctorId?: string | number;
     }>({});
 
-    const { data, isLoading } = useGetLiveAppointments(
+    const { data, isLoading,refetch } = useGetLiveAppointments(
         filters.clinicId,
         filters.departmentId,
         filters.doctorId
     );
     const [showOtherStatuses, setShowOtherStatuses] = useState(false);
+    const getActionsForStatus = (status: AppointmentStatusEnum) => {
+        switch (status) {
+            case AppointmentStatusEnum.BOOKED:
+                return ["CHECK_IN"];
+
+            case AppointmentStatusEnum.CHECKED_IN:
+                return ["START"];
+
+            case AppointmentStatusEnum.IN_PROGRESS:
+                return ["COMPLETE"];
+
+            default:
+                return [];
+        }
+    };
 
     /* ===== GROUP APPOINTMENTS BY STATUS ===== */
     const groupedAppointments = useMemo(() => {
@@ -106,38 +125,16 @@ const Appointment = () => {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {items.map((item: any) => {
-                        const appt = item.appointment;
+                    {items.map((item: any) => (
+                        <AppointmentCard
+                            key={item.appointment.id}
+                            appointment={item.appointment}
+                            statusLabel={STATUS_LABEL}
+                            onSuccess={refetch}
+                        />
+                    ))}
 
-                        return (
-                            <Card key={appt.id}>
-                                <CardHeader>
-                                    <CardTitle className="text-base">
-                                        {appt.patient_name}
-                                    </CardTitle>
-                                </CardHeader>
 
-                                <CardContent className="space-y-2 text-sm">
-                                    <div>
-                                        <strong>Queue:</strong> {appt.queue_number}
-                                    </div>
-
-                                    <div>
-                                        <strong>Type:</strong>{" "}
-                                        {AppointmentTypeEnum[appt.appointment_type as AppointmentTypeEnum]}
-                                    </div>
-
-                                    <div>
-                                        <strong>Time:</strong> {appt.scheduled_start_time}
-                                    </div>
-
-                                    <div>
-                                        <strong>Status:</strong> {STATUS_LABEL[appt.status]}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
                 </div>
             </div>
         );

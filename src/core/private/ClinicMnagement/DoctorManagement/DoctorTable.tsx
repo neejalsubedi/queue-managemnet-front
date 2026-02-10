@@ -189,6 +189,7 @@ const DoctorTable = ({ departmentId }: Props) => {
                                             setActiveDoctorId(doctor.id);
                                             carouselApi?.scrollTo(index);
                                             setActiveIndex(index)
+
                                         }}
                                         className={cn(
                                             "group relative flex flex-col justify-between h-full min-h-[160px] rounded-xl border p-5 transition-all duration-300 cursor-pointer",
@@ -244,6 +245,7 @@ const DoctorTable = ({ departmentId }: Props) => {
                                                         onClick={() => {
                                                             setSelectedDoctor(doctor);
                                                             setOpenShift(true);
+
                                                         }}
                                                     >
                                                         Allocate Shift

@@ -64,6 +64,7 @@ type TableProps<T extends { id: number | string }> = {
     onSelectionChange?: (ids: Array<T["id"]>) => void;
 };
 
+
 function Table<T extends { id: number | string }>({
                                                       data,
                                                       columns,
@@ -85,13 +86,22 @@ function Table<T extends { id: number | string }>({
                                                       onSearchChange,
                                                       onItemsPerPageChange,
                                                       showEditButton,
-                                                      // filters,
-                                                      // selectedFilter,
-                                                      // onFilterChange,
                                                       selectable = false,
                                                       selectedRowIds = [],
                                                       onSelectionChange,
                                                   }: TableProps<T>) {
+
+    /* ✅ NORMALIZE DATA HERE */
+    const tableData = useMemo<T[]>(() => {
+        if (Array.isArray(data)) return data;
+
+        // backend response safeguard (extra safety)
+        if (data && typeof data === "object" && "data" in (data as any)) {
+            return ((data as any).data ?? []) as T[];
+        }
+
+        return [];
+    }, [data]);
     const isMobile = useIsMobile();
     const [searchText, setSearchText] = useState("");
     const [debouncedSearch] = useDebounce(searchText, 500);
@@ -143,26 +153,21 @@ function Table<T extends { id: number | string }>({
     };
 
     const filteredData = useMemo(() => {
-        if (!searchText.trim()) return data;
+        if (!searchText.trim()) return tableData;
 
         const lowerSearch = searchText.toLowerCase();
 
         return data.filter((row) =>
             Object.values(row).some((value) => {
                 if (value == null) return false;
-
-                if (typeof value === "string") {
+                if (typeof value === "string")
                     return value.toLowerCase().includes(lowerSearch);
-                }
-
-                if (typeof value === "number") {
+                if (typeof value === "number")
                     return value.toString().includes(lowerSearch);
-                }
-
                 return false;
             }),
         );
-    }, [data, searchText]);
+    }, [tableData, searchText]);
 
     const sortedData = useMemo(() => {
         if (!sortable || !sortConfig.key) return filteredData;
@@ -182,15 +187,17 @@ function Table<T extends { id: number | string }>({
 
     const currentPageNumber = page ?? currentPage;
     const perPage = isBackend ? (itemsPerPage ?? 10) : pageSize;
-    const totalPages = totalItems
-        ? Math.ceil(totalItems / perPage)
+    const totalPages = isBackend
+        ? Math.ceil((totalItems ?? 0) / perPage)
         : Math.ceil(sortedData.length / perPage);
 
+
     const paginatedData = useMemo(() => {
-        if (isBackend) return data; // backend already slices
+        if (isBackend) return tableData; // already paginated by backend
         const start = (currentPage - 1) * perPage;
         return sortedData.slice(start, start + perPage);
-    }, [data, sortedData, currentPage, perPage, isBackend]);
+    }, [tableData, sortedData, currentPage, perPage, isBackend]);
+
 
     const handleSort = (key: StringKeyOf<T>) => {
         if (!sortable) return;

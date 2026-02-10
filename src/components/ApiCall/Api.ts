@@ -97,7 +97,10 @@ export const useUpdatePatient = (id: string | number | undefined) =>
 export const useDeletePatient = (id: string | number | undefined) =>
     useApiMutation("delete", API_ENDPOINTS.PATIENT.DELETE_PATIENT(id));
 export const useGetDoctorShift = (doctorId: string | number | undefined, departmentId: string | undefined | number) =>
-    useApiGet(API_ENDPOINTS.DOCTOR_SHIFT.GET_DOCTOR_SHIFT(doctorId, departmentId))
+    useApiGet(API_ENDPOINTS.DOCTOR_SHIFT.GET_DOCTOR_SHIFT(doctorId, departmentId),{
+        retry:0,
+        enabled:!!doctorId &&!!departmentId,
+    })
 export const useSaveDoctorShift = (doctorId: string | number | undefined, departmentId: string | undefined | number) =>
     useApiMutation("put", API_ENDPOINTS.DOCTOR_SHIFT.ADD_DOCTOR_SHIFT(doctorId, departmentId))
 // ADD / BOOK appointment
@@ -154,15 +157,15 @@ export const useGetAppointmentHistory = (
 
 // CHECK-IN appointment
 export const useCheckInAppointment = (id: string | number | undefined) =>
-    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.CHECK_IN(id));
+    useApiMutation("put", API_ENDPOINTS.APPOINTMENT.CHECK_IN(id));
 
 // START appointment
 export const useStartAppointment = (id: string | number | undefined) =>
-    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.START(id));
+    useApiMutation("put", API_ENDPOINTS.APPOINTMENT.START(id));
 
 // COMPLETE appointment
 export const useCompleteAppointment = (id: string | number | undefined) =>
-    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.COMPLETE(id));
+    useApiMutation("put", API_ENDPOINTS.APPOINTMENT.COMPLETE(id));
 
 // CANCEL appointment
 export const useCancelAppointment = (id: string | number | undefined) =>
@@ -175,3 +178,7 @@ export const useNoShowAppointment = (id: string | number | undefined) =>
 // UPDATE appointment
 export const useUpdateAppointment = (id: string | number | undefined) =>
     useApiMutation("put", API_ENDPOINTS.APPOINTMENT.UPDATE(id));
+export const useFollowUpAppointment = (id: string | number | undefined) =>
+    useApiMutation("post", API_ENDPOINTS.APPOINTMENT.FOLLOW_UP(id));
+export const useRescheduleAppointment = (id: string | number | undefined) =>
+    useApiMutation("put", API_ENDPOINTS.APPOINTMENT.RESCHEDULE(id));
