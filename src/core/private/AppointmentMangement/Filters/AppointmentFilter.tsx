@@ -4,8 +4,8 @@ import {
     useGetClinic,
     useGetDepartment,
     useGetDoctor,
-} from "@/components/ApiCall/Api";
-import { Label } from "@/components/ui/label";
+} from "@/components/ApiCall/Api.ts";
+import { Label } from "@/components/ui/label.tsx";
 
 const AppointmentFilter = () => {
     const { register, control, setValue } = useFormContext();

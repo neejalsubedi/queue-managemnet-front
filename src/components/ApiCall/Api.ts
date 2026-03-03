@@ -182,3 +182,46 @@ export const useFollowUpAppointment = (id: string | number | undefined) =>
     useApiMutation("post", API_ENDPOINTS.APPOINTMENT.FOLLOW_UP(id));
 export const useRescheduleAppointment = (id: string | number | undefined) =>
     useApiMutation("put", API_ENDPOINTS.APPOINTMENT.RESCHEDULE(id));
+export const useGetUpcomingAppointments = (
+    date_from?: string,
+    date_to?: string,
+    clinic_id?: string | number,
+    department_id?: string | number,
+    doctor_id?: string | number,
+    appointment_type?: string,
+    patient_name?: string,
+    status?: string,
+    page?: number,
+    limit?: number,
+) =>
+    useApiGet(API_ENDPOINTS.APPOINTMENT.GET_UPCOMING, {
+        queryParams: {
+            date_from,
+            date_to,
+            clinic_id,
+            department_id,
+            doctor_id,
+            appointment_type,
+            patient_name,
+            status,
+            page: page ?? 1,
+            limit: limit ?? 15,
+        },
+        retry: 0,
+        enabled: !!date_from && !!date_to,
+    });
+export const useApproveAppointment = (
+    id: string | number | undefined
+) =>
+    useApiMutation(
+        "put",
+        API_ENDPOINTS.APPOINTMENT.APPROVE(id)
+    );
+export const useRejectAppointment = (
+    id: string | number | undefined
+) =>
+    useApiMutation(
+        "put", // change to "post" if backend expects POST
+        API_ENDPOINTS.APPOINTMENT.REJECT(id)
+    );
+

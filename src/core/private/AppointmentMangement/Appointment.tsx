@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { FilterAccordion } from "@/components/ui/FilterAccordion";
-import AppointmentFilter from "@/core/private/AppointmentMangement/AppointmentFilter";
+import AppointmentFilter from "@/core/private/AppointmentMangement/Filters/AppointmentFilter.tsx";
 import {
 
     useGetLiveAppointments,

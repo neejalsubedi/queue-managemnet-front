@@ -104,6 +104,10 @@ APPOINTMENT:{
     GET_HISTORY:`api/appointments/history`,
     FOLLOW_UP:(id:number|undefined|string)=>`/api/appointments/follow-up/${id}`,
     RESCHEDULE:(id:number|undefined|string)=>`/api/appointments/reschedule/${id}`,
+    GET_UPCOMING:`/api/appointments/upcoming`,
+    APPROVE:(id:number|undefined|string)=>`/api/appointments/approve/${id}`,
+    REJECT:(id:number|undefined|string)=>`/api/appointments/reject/${id}`,
+
 
 
     }

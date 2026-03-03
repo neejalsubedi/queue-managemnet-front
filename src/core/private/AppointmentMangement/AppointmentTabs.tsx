@@ -15,6 +15,7 @@ import {
 import {useIsMobile} from "@/hooks/use-mobile.tsx";
 import Appointment from "@/core/private/AppointmentMangement/Appointment.tsx";
 import AppointmentHistory from "@/core/private/AppointmentMangement/AppointmentHistory.tsx";
+import Upcoming from "@/core/private/AppointmentMangement/Upcoming.tsx";
 
 
 /* 🔑 storage key */
@@ -25,6 +26,7 @@ const TABS = [
     // { value: "patient-appointment", label: "Patient Appointment" },
     { value: "appointment", label: "Live Appointment" },
     { value: "history", label: "History" },
+    { value: "upcoming", label: "Upcoming Appointments" },
 ];
 
 // const DEFAULT_TAB = "patient-appointment";
@@ -103,6 +105,10 @@ const AppointmentTabs = () => {
                     <TabsContent value="history" className="p-6">
                          <AppointmentHistory />
                     </TabsContent>
+                    <TabsContent value="upcoming" className="p-6">
+                        <Upcoming />
+                    </TabsContent>
+
                 </div>
             </Tabs>
 
