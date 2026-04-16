@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { FilterAccordion } from "@/components/ui/FilterAccordion";
-import AppointmentFilter from "@/core/private/AppointmentMangement/Filters/AppointmentFilter.tsx";
+import AppointmentFilter from "@/core/private/AppointmentMangement/AppointmentFilter";
 import {
 
     useGetLiveAppointments,
@@ -13,7 +13,7 @@ import {
 
     CardContent,
 } from "@/components/ui/card";
-import {AppointmentStatusEnum} from "@/enums/AppointmentEnum.ts";
+import { AppointmentStatusEnum } from "@/enums/AppointmentEnum.ts";
 import AppointmentCard from "@/core/private/AppointmentMangement/AppointmentCard.tsx";
 
 /* ===== STATUS CONSTANT ===== */
@@ -68,7 +68,7 @@ const Appointment = () => {
         doctorId?: string | number;
     }>({});
 
-    const { data, isLoading,refetch } = useGetLiveAppointments(
+    const { data, isLoading, refetch } = useGetLiveAppointments(
         filters.clinicId,
         filters.departmentId,
         filters.doctorId
@@ -158,7 +158,7 @@ const Appointment = () => {
             </FilterAccordion>
 
             {/* ===== ADD BUTTON ===== */}
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-2">
                 <Button
                     onClick={() =>
                         navigate("/appointment-management/book-appointment")

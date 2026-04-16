@@ -1,6 +1,6 @@
-import {useEffect, useState} from "react";
+import { useState } from "react";
 import type { DateRange } from "react-day-picker";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useWatch } from "react-hook-form";
 import {
     Accordion,
     AccordionContent,
@@ -13,11 +13,15 @@ import { DateRangePicker } from "@/helper/dateRangePicker";
 import { formatDateYYYYMMDD } from "@/utility/date";
 
 import { Filter } from "lucide-react";
-import {useMediaQuery} from "@/helper/useMediaQuery.tsx";
+import { useMediaQuery } from "@/helper/useMediaQuery.tsx";
 type FilterAccordionProps = {
     title?: string;
     initialRange?: DateRange;
     dateRequired?: boolean;
+    /** When false, department is not required to enable Apply (default true) */
+    requireDepartment?: boolean;
+    /** When true, form field "status" must be non-empty to enable Apply (default false) */
+    requireStatus?: boolean;
     children?: React.ReactNode;
     onApply: (filters: {
         range?: { from: string; to: string };
@@ -33,20 +37,37 @@ const todayRange: DateRange = {
 };
 
 export function FilterAccordion({
-                                    title = "Filters",
-                                    initialRange=todayRange,
-                                    dateRequired = true,
-                                    children,
-                                    onApply,
-                                    onReset,
-                                }: FilterAccordionProps) {
+    title = "Filters",
+    initialRange = todayRange,
+    dateRequired = true,
+    requireDepartment = true,
+    requireStatus = false,
+    children,
+    onApply,
+    onReset,
+}: FilterAccordionProps) {
     const form = useForm({ defaultValues: {} });
     const [range, setRange] = useState<DateRange | undefined>(initialRange);
 
-    // 📱 Mobile detection
+    const clinicId = useWatch({ control: form.control, name: "clinicId", defaultValue: "" });
+    const departmentId = useWatch({ control: form.control, name: "departmentId", defaultValue: "" });
+    const status = useWatch({ control: form.control, name: "status", defaultValue: "" });
+
+    const hasClinic = clinicId != null && clinicId !== "";
+    const hasDepartment = departmentId != null && departmentId !== "";
+    const hasDate = range?.from != null && range?.to != null;
+    const hasStatus = status != null && status !== "";
+
+    const canApply =
+        hasClinic &&
+        (requireDepartment ? hasDepartment : true) &&
+        (!dateRequired || hasDate) &&
+        (!requireStatus || hasStatus);
+
     const isDesktop = useMediaQuery("(min-width: 1024px)");
 
     const handleApply = () => {
+        if (!canApply) return;
         if (dateRequired && (!range?.from || !range?.to)) return;
 
         onApply({
@@ -61,23 +82,12 @@ export function FilterAccordion({
         });
     };
 
-    const handleReset = () => {
+    const handleReset = (e: React.MouseEvent) => {
+        e.preventDefault();
         form.reset();
         setRange(initialRange);
         onReset?.();
     };
-    const watchedValues = form.watch();
-
-    useEffect(() => {
-        const filledCount = Object.values(watchedValues).filter(
-            (v) => v !== undefined && v !== ""
-        ).length;
-
-        if (filledCount >= 2) {
-            handleApply();
-        }
-    }, [watchedValues]);
-
 
     return (
         <Accordion
@@ -130,13 +140,10 @@ export function FilterAccordion({
 
                             {/* Actions */}
                             <div className="col-span-full flex justify-end gap-3 pt-4">
-                                <Button  type={ "button"} onClick={handleApply}>
+                                <Button type="button" onClick={handleApply} disabled={!canApply}>
                                     Apply Filter
                                 </Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={handleReset}
-                                >
+                                <Button type="button" variant="destructive" onClick={handleReset}>
                                     Reset
                                 </Button>
                             </div>

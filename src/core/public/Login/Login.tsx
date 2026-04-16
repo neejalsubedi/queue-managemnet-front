@@ -3,9 +3,9 @@ import { API_ENDPOINTS } from "@/components/constants/ApiEndpoints/apiEndpoints"
 import { useAuth } from "@/components/ContextApi/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import z from "zod";
-import logo from "../../../assets/loginImage.png";
+import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +16,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import loginbg from "../../../assets/loginbg.png";
-import loginbg2 from "../../../assets/loginbg2.png";
 
 const schema = z.object({
-username: z.string().min(1,"enter your username"),
+  username: z.string().min(1, "Enter your username"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -56,89 +53,102 @@ const Login = () => {
   };
 
   return (
-    <div className="relative h-screen flex justify-center p-20">
-      <div className="absolute bottom-0 left-0 md:top-0 md:left-0 md:h-full sm:h-1/2 sm:w-2/6 md:w-auto hidden sm:block">
-        <img
-          src={loginbg}
-          alt="Left background"
-          className="object-cover h-full w-full"
-        />
-      </div>
-      <div className="absolute top-0 right-0 md:h-full sm:h-1/3 sm:w-2/6 md:w-auto  hidden sm:block">
-        <img
-          src={loginbg2}
-          alt="Right background"
-          className="object-cover h-full w-full"
-        />
-      </div>
-      <div className="grid grid-cols-6 sm:grid-cols-12 inset-0 sm:shadow-[0_0_15px_rgba(0,0,0,0.15)] sm:rounded-xl z-10 sm:bg-white/50 sm:backdrop-blur-md">
-        <div className="hidden sm:block sm:col-span-6 rounded-xl">
-          <img
-            src={logo}
-            alt="logo"
-            className="h-full max-w-full object-contain"
-          />
-        </div>
+    <section className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-transparent">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-sm">
+          <Button variant="ghost" size="sm" className="mb-4 -ml-2" asChild>
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to home
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Log in</h1>
+          <p className="mt-2 text-muted-foreground">
+            Sign in to your account to manage appointments and more.
+          </p>
 
-        <div className="col-span-6 sm:col-start-8 sm:col-span-4 flex flex-col justify-center items-center gap-24">
-          <div className="h-16 w-16">
-            <img
-              src={logo}
-              alt="logo"
-              className="h-full w-full object-contain"
-            />
-            <Label className="text-lg text-center">Welcome!!</Label>
-          </div>
+          <div className="mt-8 rounded-xl border border-border/60 bg-card p-6 shadow-sm">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter username" {...field} className="bg-background" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-8 w-full"
-            >
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter password"
+                          {...field}
+                          className="bg-background"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <Button type="submit" disabled={isPending} className="w-full">
+                  {isPending ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      Signing in...
+                    </span>
+                  ) : (
+                    "Sign in"
+                  )}
+                </Button>
+              </form>
+            </Form>
 
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="w-full bg-gradient-primary shadow-md hover:shadow-lg transition-all"
+            <p className="mt-5 text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link
+                to="/signup"
+                className="font-medium text-primary hover:underline"
               >
-                {isPending ? "Logging In..." : "Log In"}
-              </Button>
-            </form>
-          </Form>
+                Sign up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

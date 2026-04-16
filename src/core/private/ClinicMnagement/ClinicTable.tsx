@@ -142,7 +142,7 @@ const ClinicTable = () => {
     };
 
     return (
-        <div className="p-6 space-y-10">
+        <div className="p-6 space-y-10">    
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>

@@ -1,11 +1,24 @@
 import { useState } from "react";
-import { Column } from "jspdf-autotable";
-
 import { FilterAccordion } from "@/components/ui/FilterAccordion";
-import AppointmentFilter from "@/core/private/AppointmentMangement/Filters/AppointmentFilter.tsx";
+import AppointmentFilter from "@/core/private/AppointmentMangement/AppointmentFilter";
 import { useGetAppointmentHistory } from "@/components/ApiCall/Api";
-import Table from "@/components/ui/table.tsx";
+import Table, { Column } from "@/components/ui/table.tsx";
+import { AppointmentTableExpandable } from "./AppointmentTableExpandable";
 
+type HistoryRow = {
+    id: number;
+    patient_name?: string;
+    patient_phone?: string;
+    doctor_name?: string;
+    department_name?: string;
+    clinic_name?: string;
+    appointment_date?: string;
+    status?: string;
+    appointment_created_by?: string | null;
+    appointment_approved_by?: string | null;
+    appointment_rescheduled_by?: string | null;
+    appointment_cancelled_by?: string | null;
+};
 
 type HistoryFilters = {
     date_from?: string;
@@ -18,7 +31,6 @@ type HistoryFilters = {
 const AppointmentHistory = () => {
     const [filters, setFilters] = useState<HistoryFilters>({});
 
-    // 🔥 Pass filters directly to API
     const { data, isLoading } = useGetAppointmentHistory(
         filters.date_from,
         filters.date_to,
@@ -27,31 +39,22 @@ const AppointmentHistory = () => {
         filters.doctor_id,
     );
 
-    const columns: Column[] = [
+    const rows = (data?.data || []) as HistoryRow[];
+    const columns: Column<HistoryRow>[] = [
         {
-            header: "Patient Name",
-            dataKey: "patient_name",
+            header: "Patient",
+            accessor: (row) => (
+                <span>
+                    {row.patient_name ?? "—"}
+                    {row.patient_phone ? <span className="text-muted-foreground text-xs block mt-0.5">{row.patient_phone}</span> : null}
+                </span>
+            ),
         },
-        {
-            header: "Doctor",
-            dataKey: "doctor_name",
-        },
-        {
-            header: "Department",
-            dataKey: "department_name",
-        },
-        {
-            header: "Clinic",
-            dataKey: "clinic_name",
-        },
-        {
-            header: "Date",
-            dataKey: "appointment_date",
-        },
-        {
-            header: "Status",
-            dataKey: "status",
-        },
+        { header: "Doctor", accessor: "doctor_name" },
+        { header: "Department", accessor: "department_name" },
+        { header: "Clinic", accessor: "clinic_name" },
+        { header: "Date", accessor: "appointment_date" },
+        { header: "Status", accessor: "status", expandable: (row) => <AppointmentTableExpandable row={row} /> },
     ];
 
     return (
@@ -74,10 +77,9 @@ const AppointmentHistory = () => {
             </FilterAccordion>
 
             <Table
-                data={data?.data || []}
+                data={rows}
                 columns={columns}
                 loading={isLoading}
-
             />
         </>
     );

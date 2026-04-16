@@ -10,20 +10,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return null;
-  }
-
-  // If not authenticated at all -> go to login
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  // If authenticated but user data wasn't loaded for some reason, show loader
-  if (isAuthenticated && !user) {
-    return null;
-  }
-
   function extractPaths(modules: any[]): string[] {
     const paths: string[] = [];
 
@@ -38,23 +24,35 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   const frontendAllowedPaths = [
-    "dashboard-details/:type",
+    "patient-management/add",
     "permission/:id",
-    "history/:id",
-    "refund/:id",
   ];
 
+  // ✅ Move this ABOVE all returns
   const allowedPaths = useMemo(() => {
     return [...extractPaths(user?.moduleList || []), ...frontendAllowedPaths];
   }, [user]);
 
-  // Allow "/" and "/unauthorized" always
+  // Now do conditional returns
+
+  if (loading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (isAuthenticated && !user) {
+    return null;
+  }
+
   if (location.pathname === "/" || location.pathname === "/unauthorized") {
     return <>{children}</>;
   }
 
   const isAllowed = allowedPaths.some((pattern) =>
-    matchPath({ path: pattern, end: false }, location.pathname)
+    matchPath({ path: pattern, end: false }, location.pathname),
   );
 
   if (!isAllowed) {

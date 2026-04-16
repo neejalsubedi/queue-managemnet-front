@@ -122,7 +122,7 @@ const AppointmentCard = ({ appointment: appt, onSuccess, statusLabel }: Props) =
                                 size="sm"
                                 variant="outline"
                                 onClick={handleFollowUp}
-                                    disabled={followUpMutation.isPending}
+                                disabled={followUpMutation.isPending}
                             >
                                 Follow Up
                             </Button>

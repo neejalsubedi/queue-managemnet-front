@@ -1,11 +1,11 @@
 export interface RoleRequest {
-  name: string;
+  role_name: string;
   code: string;
   description: string;
 }
 export interface RoleResponse {
   id: number;
-  name: string;
+  role_name: string;
   code: string;
   description: string;
 }

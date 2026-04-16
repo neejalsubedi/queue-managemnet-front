@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <GlobalLoader />
+          {/* <GlobalLoader /> */}
           <App />
         </AuthProvider>
       </TooltipProvider>

@@ -1,118 +1,126 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useCallback } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import {useIsMobile} from "@/hooks/use-mobile.tsx";
-import Appointment from "@/core/private/AppointmentMangement/Appointment.tsx";
-import AppointmentHistory from "@/core/private/AppointmentMangement/AppointmentHistory.tsx";
-import Upcoming from "@/core/private/AppointmentMangement/Upcoming.tsx";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Clock, List, History, CalendarPlus } from "lucide-react";
 
+const TAB_PARAM = "tab";
 
-/* 🔑 storage key */
-const TAB_KEY = "appointment-active-tab";
-
-/* 🧭 tabs config */
 const TABS = [
-    // { value: "patient-appointment", label: "Patient Appointment" },
-    { value: "appointment", label: "Live Appointment" },
-    { value: "history", label: "History" },
-    { value: "upcoming", label: "Upcoming Appointments" },
-];
+  { value: "live", label: "Live" },
+  { value: "upcoming", label: "Upcoming" },
+  { value: "history", label: "History" },
+] as const;
 
-// const DEFAULT_TAB = "patient-appointment";
-const DEFAULT_TAB="appointment"
-const AppointmentTabs = () => {
-    const isMobile = useIsMobile();
+const DEFAULT_TAB = "live";
 
-    const [activeTab, setActiveTab] = useState<string>(() => {
-        const saved = sessionStorage.getItem(TAB_KEY);
-        return TABS.some((t) => t.value === saved) ? saved! : DEFAULT_TAB;
-    });
+function tabFromParams(searchParams: URLSearchParams): (typeof TABS)[number]["value"] {
+  const t = searchParams.get(TAB_PARAM);
+  const valid = t && TABS.some((tab) => tab.value === t);
+  return (valid ? t : DEFAULT_TAB) as (typeof TABS)[number]["value"];
+}
 
-    /* 💾 persist active tab */
-    useEffect(() => {
-        sessionStorage.setItem(TAB_KEY, activeTab);
-    }, [activeTab]);
+const UpcomingTab = lazy(() => import("./tabs/UpcomingTab"));
+const LiveQueueTab = lazy(() => import("./tabs/LiveQueueTab"));
+const HistoryTab = lazy(() => import("./tabs/HistoryTab"));
 
-    /* 🧹 cleanup on unmount */
-    useEffect(() => {
-        return () => {
-            sessionStorage.removeItem(TAB_KEY);
-        };
-    }, []);
+function TabFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[280px] text-muted-foreground">
+      Loading…
+    </div>
+  );
+}
 
-    return (
-            <Tabs value={activeTab} defaultValue={DEFAULT_TAB} onValueChange={setActiveTab}>
+export default function AppointmentTabs() {
+  const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = tabFromParams(searchParams);
 
-                {/* ===== HEADER ===== */}
+  const setActiveTabPersisted = useCallback(
+    (v: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set(TAB_PARAM, v);
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
 
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Appointment Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Real-time queue, upcoming appointments, and history.
+          </p>
+        </div>
+        <Button asChild className="shrink-0" size="default">
+          <Link to="/appointment-management/book-appointment" className="gap-2">
+            <CalendarPlus className="h-4 w-4" />
+            Book Appointment
+          </Link>
+        </Button>
+      </div>
 
-                    {/* 🖥 Desktop Tabs */}
-                    {!isMobile && (
-                        <TabsList className="flex gap-6 bg-transparent p-2 h-15">
-                            {TABS.map((tab) => (
-                                <TabsTrigger
-                                    key={tab.value}
-                                    value={tab.value}
-                                    className="tab-trigger"
-                                >
-                                    {tab.label}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    )}
+      <Tabs value={activeTab} onValueChange={setActiveTabPersisted}>
+        {!isMobile ? (
+          <TabsList className="flex flex-wrap gap-1 bg-muted/60 p-1 h-auto">
+            {TABS.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="gap-2"
+              >
+                {tab.value === "live" && <Clock className="h-4 w-4" />}
+                {tab.value === "upcoming" && <List className="h-4 w-4" />}
+                {tab.value === "history" && <History className="h-4 w-4" />}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        ) : (
+          <Select value={activeTab} onValueChange={setActiveTabPersisted}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select section" />
+            </SelectTrigger>
+            <SelectContent>
+              {TABS.map((tab) => (
+                <SelectItem key={tab.value} value={tab.value}>
+                  {tab.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
-                    {/* 📱 Mobile Dropdown */}
-                    {isMobile && (
-                        <Select value={activeTab} onValueChange={setActiveTab}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select section" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {TABS.map((tab) => (
-                                    <SelectItem
-                                        key={tab.value}
-                                        value={tab.value}
-                                    >
-                                        {tab.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-
-
-                {/* ===== CONTENT ===== */}
-                <div className="bg-white border border-t-0 rounded-lg">
-                    {/*<TabsContent value="patient-appointment" className="p-6">*/}
-                    {/*  <span>hhhhh</span>*/}
-                    {/*</TabsContent>*/}
-
-                    <TabsContent value="appointment" className="p-6">
-                   <Appointment/>
-                    </TabsContent>
-
-                    <TabsContent value="history" className="p-6">
-                         <AppointmentHistory />
-                    </TabsContent>
-                    <TabsContent value="upcoming" className="p-6">
-                        <Upcoming />
-                    </TabsContent>
-
-                </div>
-            </Tabs>
-
-    );
-};
-
-export default AppointmentTabs;
+        <div className="mt-4 bg-card border rounded-lg">
+          <Suspense fallback={<TabFallback />}>
+            <TabsContent value="live" className="m-0 p-2">
+              <LiveQueueTab />
+            </TabsContent>
+            <TabsContent value="upcoming" className="m-0 p-2">
+              <UpcomingTab />
+            </TabsContent>
+            <TabsContent value="history" className="m-0 p-2">
+              <HistoryTab />
+            </TabsContent>
+          </Suspense>
+        </div>
+      </Tabs>
+    </div>
+  );
+}
